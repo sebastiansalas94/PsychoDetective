@@ -6,14 +6,34 @@
 #include "GameFramework/Character.h"
 #include "PD_Character.generated.h"
 
+class USpringArmComponent;
+class UCameraComponent;
+
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Character : public ACharacter
 {
     GENERATED_BODY()
 
 protected:
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    USpringArmComponent* SpringArmComponent;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UCameraComponent* FPSCameraComponent;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+    UCameraComponent* TPSCameraComponent;
+    
+protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
     bool bIsLookInversion;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+    bool bIsFirstPersonView;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+    FName FPSCameraSocketName;
     
 public:
     // Sets default values for this character's properties

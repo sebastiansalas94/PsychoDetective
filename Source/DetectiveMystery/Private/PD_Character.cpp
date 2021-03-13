@@ -2,6 +2,9 @@
 
 
 #include "PD_Character.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+
 
 // Sets default values
 APD_Character::APD_Character()
@@ -9,6 +12,19 @@ APD_Character::APD_Character()
      // Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
     PrimaryActorTick.bCanEverTick = true;
 
+    FPSCameraSocketName = "SCK_Camera";
+    bIsFirstPersonView = true;
+    
+    FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
+    FPSCameraComponent->bUsePawnControlRotation = true;
+    FPSCameraComponent->SetupAttachment(GetMesh(), FPSCameraSocketName);
+    
+    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
+    SpringArmComponent->bUsePawnControlRotation = true;
+    SpringArmComponent->SetupAttachment(RootComponent);
+    
+    TPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPS_CameraComponent"));
+    TPSCameraComponent->SetupAttachment(SpringArmComponent);
 }
 
 // Called when the game starts or when spawned
