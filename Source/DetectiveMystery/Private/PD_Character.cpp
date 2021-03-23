@@ -4,7 +4,7 @@
 #include "PD_Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -14,6 +14,8 @@ APD_Character::APD_Character()
 
     FPSCameraSocketName = "SCK_Camera";
     bIsFirstPersonView = true;
+    MaxSpeedWalk = 600;
+    MaxSpeedSprint = 1000;
     
     FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
     FPSCameraComponent->bUsePawnControlRotation = true;
@@ -50,6 +52,14 @@ void APD_Character::StopJumping(){
     Super::StopJumping();
 }
 
+void APD_Character::StartSprint(){
+    GetCharacterMovement()->MaxWalkSpeed = MaxSpeedSprint;
+}
+
+void APD_Character::StopSprint(){
+    GetCharacterMovement()->MaxWalkSpeed  = MaxSpeedWalk;
+}
+
 void APD_Character::AddControllerPitchInput(float value){
     Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
 }
@@ -74,5 +84,16 @@ void APD_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
     
     PlayerInputComponent-> BindAction("Jump", IE_Pressed, this, &APD_Character::Jump);
     PlayerInputComponent-> BindAction("Jump", IE_Released, this, &APD_Character::StopJumping);
+    
+    PlayerInputComponent-> BindAction("Sprint", IE_Pressed, this, &APD_Character::StartSprint);
+    PlayerInputComponent-> BindAction("Sprint", IE_Released, this, &APD_Character::StopSprint);
 
+}
+
+void APD_Character::AddKey(FName newKey){
+    DoorKeys.Add(newKey);
+}
+
+bool APD_Character::HasKey(FName keyTag){
+    return DoorKeys.Contains(keyTag);
 }

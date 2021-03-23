@@ -35,6 +35,15 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
     FName FPSCameraSocketName;
     
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+    TArray<FName> DoorKeys;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
+    float MaxSpeedWalk;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
+    float MaxSpeedSprint;
+    
 public:
     // Sets default values for this character's properties
     APD_Character();
@@ -49,6 +58,9 @@ protected:
     virtual void Jump() override;
     virtual void StopJumping() override;
     
+    void StartSprint();
+    void StopSprint();
+    
 public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
@@ -57,4 +69,8 @@ public:
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
     virtual void AddControllerPitchInput(float value) override;
+    
+    void AddKey(FName newKey);
+    
+    bool HasKey(FName keyTag);
 };
