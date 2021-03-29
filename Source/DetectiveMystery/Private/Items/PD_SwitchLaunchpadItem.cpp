@@ -9,17 +9,28 @@ APD_SwitchLaunchpadItem::APD_SwitchLaunchpadItem()
     SwitchMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SwitchMeshComponent"));
     SwitchMeshComponent->SetupAttachment(RootComponent);
     
-    TArray<APD_Launchpad*> Comps;
+    OnMaterial = CreateDefaultSubobject<UMaterial>(TEXT("OnMaterial"));
+    OffMaterial = CreateDefaultSubobject<UMaterial>(TEXT("OffMaterial"));
     
-    //GetComponents(Comps);
-    //if(Comps.Num() > 0)
-    //{
-    //    Launchpad = Comps[0];
-    //}
+    SwitchMeshComponent->SetMaterial(0, OffMaterial);
+    bLaunchpadIsActive = false;
+    ChangeMaterial();
 }
 
 void APD_SwitchLaunchpadItem::PickUp(APD_Character* PickUpCharacter){
     Super::PickUp(PickUpCharacter);
     
-    //Launchpad->TurnOnOff();
+    APD_Launchpad* LaunchpadReference = Cast<APD_Launchpad>(Launchpad);
+    if(IsValid(LaunchpadReference)){
+        bLaunchpadIsActive = Launchpad->TurnOnOff();
+        ChangeMaterial();
+    }
 }
+
+void APD_SwitchLaunchpadItem::ChangeMaterial(){
+    if(bLaunchpadIsActive)
+        SwitchMeshComponent->SetMaterial(0, OnMaterial);
+    else
+        SwitchMeshComponent->SetMaterial(0, OffMaterial);
+}
+

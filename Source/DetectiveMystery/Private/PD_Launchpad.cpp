@@ -40,16 +40,19 @@ void APD_Launchpad::Tick(float DeltaTime)
 
 }
 
-void APD_Launchpad::TurnOnOff(){
+bool APD_Launchpad::TurnOnOff(){
     
     if(bLaunchpadIsActive)
         bLaunchpadIsActive = false;
     else if(!bLaunchpadIsActive)
         bLaunchpadIsActive = true;
+    
+    return bLaunchpadIsActive;
 }
 
 void APD_Launchpad::Launch(APD_Character* Character){
-    BP_Launch(Character);
+    if(bLaunchpadIsActive)
+        BP_Launch(Character);
 }
 
 void APD_Launchpad::NotifyActorBeginOverlap(AActor* OtherActor){

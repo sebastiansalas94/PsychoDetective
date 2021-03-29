@@ -7,6 +7,7 @@
 #include "PD_Launchpad.h"
 #include "PD_SwitchLaunchpadItem.generated.h"
 
+class Launchpad;
 class UStaticMeshComponent;
 
 /**
@@ -21,13 +22,24 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* SwitchMeshComponent;
     
+    UPROPERTY(EditAnywhere)
+    class UMaterialInterface* OnMaterial;
+
+    UPROPERTY(EditAnywhere)
+    class UMaterialInterface* OffMaterial;
+    
 protected:
-    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Launchpad")
-    //PD_Launchpad* Launchpad;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Launchpad")
+    APD_Launchpad* Launchpad;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Launchpad")
+    bool bLaunchpadIsActive;
     
 public:
     APD_SwitchLaunchpadItem();
     
 protected:
     virtual void PickUp(APD_Character* PickUpCharacter) override;
+    
+    void ChangeMaterial();
 };
