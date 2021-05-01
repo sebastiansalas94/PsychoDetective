@@ -8,6 +8,7 @@
 
 class USpringArmComponent;
 class UCameraComponent;
+class APD_Weapon;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Character : public ACharacter
@@ -44,9 +45,19 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
     float MaxSpeedSprint;
     
+	//TSubclass of es la referencia de la clase
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	TSubclassOf<APD_Weapon> InitialWeaponClass;
+
+	//Esta es la referencia del objeto en escena
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
+	APD_Weapon* CurrentWeapon;
+
 public:
     // Sets default values for this character's properties
     APD_Character();
+
+	virtual FVector GetPawnViewLocation() const override;
 
 protected:
     // Called when the game starts or when spawned
@@ -60,6 +71,11 @@ protected:
     
     void StartSprint();
     void StopSprint();
+
+	void CreateInitialWeapon();
+
+	void StartWeaponAction();
+	void StopWeaponAction();
     
 public:
     // Called every frame
@@ -70,6 +86,9 @@ public:
 
     virtual void AddControllerPitchInput(float value) override;
     
+	//TODO - Metodo para interactuar con objetos
+	void Interact();
+
     void AddKey(FName newKey);
     
     bool HasKey(FName keyTag);

@@ -22,10 +22,10 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UStaticMeshComponent* SwitchMeshComponent;
     
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditDefaultsOnly)
     class UMaterialInterface* OnMaterial;
 
-    UPROPERTY(EditAnywhere)
+    UPROPERTY(EditDefaultsOnly)
     class UMaterialInterface* OffMaterial;
     
 protected:

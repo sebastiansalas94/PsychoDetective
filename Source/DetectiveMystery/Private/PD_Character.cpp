@@ -5,6 +5,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "PD_Weapon.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -29,11 +30,24 @@ APD_Character::APD_Character()
     TPSCameraComponent->SetupAttachment(SpringArmComponent);
 }
 
+FVector APD_Character::GetPawnViewLocation() const
+{
+	if (IsValid(FPSCameraComponent) && bIsFirstPersonView) {
+		return FPSCameraComponent->GetComponentLocation();
+	}
+	else if (IsValid(TPSCameraComponent) && !bIsFirstPersonView) {
+		return TPSCameraComponent->GetComponentLocation();
+	}
+
+	return Super::GetPawnViewLocation();
+	
+}
+
 // Called when the game starts or when spawned
 void APD_Character::BeginPlay()
 {
     Super::BeginPlay();
-    
+	CreateInitialWeapon();
 }
 
 void APD_Character::MoveForward(float value){
@@ -58,6 +72,32 @@ void APD_Character::StartSprint(){
 
 void APD_Character::StopSprint(){
     GetCharacterMovement()->MaxWalkSpeed  = MaxSpeedWalk;
+}
+
+void APD_Character::CreateInitialWeapon() {
+
+	if (IsValid(InitialWeaponClass)) {
+		CurrentWeapon = GetWorld()->SpawnActor<APD_Weapon>(InitialWeaponClass, GetActorLocation(), GetActorRotation());
+
+		if (IsValid(CurrentWeapon)) {
+			CurrentWeapon->SetCharacterOwner(this);
+			CurrentWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale);
+		}
+	}
+}
+
+void APD_Character::StartWeaponAction() {
+
+	if (IsValid(CurrentWeapon)) {
+		CurrentWeapon->StartAction();
+	}
+}
+
+void APD_Character::StopWeaponAction() {
+
+	if (IsValid(CurrentWeapon)) {
+		CurrentWeapon->StopAction();
+	}
 }
 
 void APD_Character::AddControllerPitchInput(float value){
@@ -88,6 +128,11 @@ void APD_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
     PlayerInputComponent-> BindAction("Sprint", IE_Pressed, this, &APD_Character::StartSprint);
     PlayerInputComponent-> BindAction("Sprint", IE_Released, this, &APD_Character::StopSprint);
 
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &APD_Character::Interact);
+
+	PlayerInputComponent->BindAction("WeaponAction", IE_Pressed, this, &APD_Character::StartWeaponAction);
+	PlayerInputComponent->BindAction("WeaponAction", IE_Released, this, &APD_Character::StopWeaponAction);
+
 }
 
 void APD_Character::AddKey(FName newKey){
@@ -96,4 +141,9 @@ void APD_Character::AddKey(FName newKey){
 
 bool APD_Character::HasKey(FName keyTag){
     return DoorKeys.Contains(keyTag);
+}
+
+//TODO - Implementación del metodo para interactuar con objetos
+void APD_Character::Interact() {
+
 }
