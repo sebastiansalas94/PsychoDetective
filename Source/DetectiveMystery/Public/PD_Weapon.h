@@ -38,6 +38,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, BluePrintCallable, Category = "Weapon")
 	void BP_StopAction();
 
+	UFUNCTION(BlueprintImplementableEvent, BluePrintCallable, Category = "Weapon")
+	void BP_StartSecondaryAction();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -47,6 +50,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void StopAction();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void StartSecondaryAction();
 
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterOwner(ACharacter* NewOwner);

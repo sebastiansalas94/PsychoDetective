@@ -100,6 +100,13 @@ void APD_Character::StopWeaponAction() {
 	}
 }
 
+void APD_Character::StartWeaponSecondaryAction() {
+
+	if (IsValid(CurrentWeapon)) {
+		CurrentWeapon->StartSecondaryAction();
+	}
+}
+
 void APD_Character::AddControllerPitchInput(float value){
     Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
 }
@@ -132,6 +139,8 @@ void APD_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("WeaponAction", IE_Pressed, this, &APD_Character::StartWeaponAction);
 	PlayerInputComponent->BindAction("WeaponAction", IE_Released, this, &APD_Character::StopWeaponAction);
+
+	PlayerInputComponent->BindAction("WeaponSecondaryAction", IE_Pressed, this, &APD_Character::StartWeaponSecondaryAction);
 
 }
 

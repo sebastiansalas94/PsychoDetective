@@ -75,8 +75,6 @@ void APD_Rifle::StartAction() {
 			}
 
 		}
-
-
 	}
 }
 
