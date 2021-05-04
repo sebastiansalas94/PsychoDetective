@@ -78,6 +78,7 @@ protected:
 	void StopWeaponAction();
 
 	void StartWeaponSecondaryAction();
+	void StopWeaponSecondaryAction();
     
 public:
     // Called every frame

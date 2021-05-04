@@ -42,6 +42,11 @@ void APD_Weapon::StartSecondaryAction()
 	BP_StartSecondaryAction();
 }
 
+void APD_Weapon::StopSecondaryAction()
+{
+	BP_StopSecondaryAction();
+}
+
 void APD_Weapon::SetCharacterOwner(ACharacter* NewOwner) 
 {
 	if (IsValid(NewOwner)) {
