@@ -2,6 +2,7 @@
 
 
 #include "Weapon/PD_Rifle.h"
+#include "../DetectiveMystery.h"
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
@@ -37,7 +38,7 @@ void APD_Rifle::StartAction() {
 		FVector TraceEndPoint = TraceEnd;
 
 		FHitResult HitResult;
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, ECC_Visibility, QueryParams);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, COLLISION_WEAPON, QueryParams);
 
 		if (bHit) {
 			//Make damage

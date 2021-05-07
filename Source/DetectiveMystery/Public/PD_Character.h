@@ -9,6 +9,8 @@
 class USpringArmComponent;
 class UCameraComponent;
 class APD_Weapon;
+class UAnimMontage;
+class UAnimInstance;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Character : public ACharacter
@@ -25,6 +27,9 @@ protected:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
     UCameraComponent* TPSCameraComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UCapsuleComponent* MeleeDetectorComponent;
     
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
@@ -33,8 +38,11 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
     bool bIsFirstPersonView;
     
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
     FName FPSCameraSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+	FName MeleeSocketName;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
     TArray<FName> DoorKeys;
@@ -53,6 +61,11 @@ protected:
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 	APD_Weapon* CurrentWeapon;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Animation")
+	UAnimMontage* MeleeMontage;
+
+	UAnimInstance* MyAnimInstance;
+
 public:
     // Sets default values for this character's properties
     APD_Character();
@@ -62,6 +75,8 @@ public:
 protected:
     // Called when the game starts or when spawned
     virtual void BeginPlay() override;
+
+	void InitiliazeReferences();
 
     void MoveForward(float value);
     void MoveRight(float value);
@@ -79,6 +94,9 @@ protected:
 
 	void StartWeaponSecondaryAction();
 	void StopWeaponSecondaryAction();
+
+	void StartMeleeAction();
+	void StopMeleeAction();
     
 public:
     // Called every frame

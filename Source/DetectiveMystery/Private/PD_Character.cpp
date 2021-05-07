@@ -2,32 +2,44 @@
 
 
 #include "PD_Character.h"
+#include "../DetectiveMystery.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PD_Weapon.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/AnimMontage.h"
+#include "Components/CapsuleComponent.h"
+
 
 // Sets default values
 APD_Character::APD_Character()
 {
-     // Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-    PrimaryActorTick.bCanEverTick = true;
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	PrimaryActorTick.bCanEverTick = true;
 
-    FPSCameraSocketName = "SCK_Camera";
-    bIsFirstPersonView = true;
-    MaxSpeedWalk = 600;
-    MaxSpeedSprint = 1000;
-    
-    FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
-    FPSCameraComponent->bUsePawnControlRotation = true;
-    FPSCameraComponent->SetupAttachment(GetMesh(), FPSCameraSocketName);
-    
-    SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-    SpringArmComponent->bUsePawnControlRotation = true;
-    SpringArmComponent->SetupAttachment(RootComponent);
-    
-    TPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPS_CameraComponent"));
-    TPSCameraComponent->SetupAttachment(SpringArmComponent);
+	FPSCameraSocketName = "SCK_Camera";
+	MeleeSocketName = "SCK_Melee";
+	bIsFirstPersonView = true;
+	MaxSpeedWalk = 600;
+	MaxSpeedSprint = 1000;
+
+	FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
+	FPSCameraComponent->bUsePawnControlRotation = true;
+	FPSCameraComponent->SetupAttachment(GetMesh(), FPSCameraSocketName);
+
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
+	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->SetupAttachment(RootComponent);
+
+	TPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("TPS_CameraComponent"));
+	TPSCameraComponent->SetupAttachment(SpringArmComponent);
+
+	MeleeDetectorComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("MeleeDetectorComponent"));
+	MeleeDetectorComponent->SetupAttachment(GetMesh(), MeleeSocketName);
+	MeleeDetectorComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
 }
 
 FVector APD_Character::GetPawnViewLocation() const
@@ -47,7 +59,14 @@ FVector APD_Character::GetPawnViewLocation() const
 void APD_Character::BeginPlay()
 {
     Super::BeginPlay();
+	InitiliazeReferences();
 	CreateInitialWeapon();
+}
+
+void APD_Character::InitiliazeReferences() {
+	if (IsValid(GetMesh())) {
+		MyAnimInstance = GetMesh()->GetAnimInstance();
+	}
 }
 
 void APD_Character::MoveForward(float value){
@@ -113,6 +132,17 @@ void APD_Character::StopWeaponSecondaryAction() {
 		CurrentWeapon->StopSecondaryAction();
 	}
 }
+
+void APD_Character::StartMeleeAction() {
+	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage)) {
+		MyAnimInstance->Montage_Play(MeleeMontage);
+	}
+}
+
+void APD_Character::StopMeleeAction() {
+	UE_LOG(LogTemp, Warning, TEXT("Stop melee action"));
+}
+
 void APD_Character::AddControllerPitchInput(float value){
     Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
 }
@@ -148,6 +178,10 @@ void APD_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	PlayerInputComponent->BindAction("WeaponSecondaryAction", IE_Pressed, this, &APD_Character::StartWeaponSecondaryAction);
 	PlayerInputComponent->BindAction("WeaponSecondaryAction", IE_Released, this, &APD_Character::StopWeaponSecondaryAction);
+
+	PlayerInputComponent->BindAction("MeleeAction", IE_Pressed, this, &APD_Character::StartMeleeAction);
+	PlayerInputComponent->BindAction("MeleeAction", IE_Released, this, &APD_Character::StopMeleeAction);
+
 
 }
 
