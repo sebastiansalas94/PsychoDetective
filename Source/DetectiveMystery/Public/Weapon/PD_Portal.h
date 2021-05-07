@@ -22,6 +22,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	USphereComponent* PortalCollision;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal")
+	APD_Portal* OtherPortalInLevel;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Portal")
+	bool bCanTeleport;
+
+	//Handle para el timer
+	FTimerHandle UnusedHandle;
+
 public:	
 	// Sets default values for this actor's properties
 	APD_Portal();
@@ -34,4 +43,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void AssignOtherPortal(APD_Portal* OtherPortal);
+
+	void TurnOnPortal();
+
+	void TurnOffPortal();
+
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 };

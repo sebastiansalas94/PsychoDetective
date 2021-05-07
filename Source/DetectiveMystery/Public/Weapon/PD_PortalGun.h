@@ -28,6 +28,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Portal")
 	APD_Portal* CurrentPortal;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Portal")
+	APD_Portal* CurrentPortal2;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LineTrace")
 	float TraceLenght;
 
@@ -47,4 +50,8 @@ protected:
 	virtual void StopAction() override;
 
 	virtual void StartSecondaryAction() override;
+
+	virtual void StopSecondaryAction() override;
+
+	void ShootPortal(bool bIsPrimaryPortal);
 };

@@ -107,6 +107,12 @@ void APD_Character::StartWeaponSecondaryAction() {
 	}
 }
 
+void APD_Character::StopWeaponSecondaryAction() {
+
+	if (IsValid(CurrentWeapon)) {
+		CurrentWeapon->StopSecondaryAction();
+	}
+}
 void APD_Character::AddControllerPitchInput(float value){
     Super::AddControllerPitchInput(bIsLookInversion ? -value : value);
 }

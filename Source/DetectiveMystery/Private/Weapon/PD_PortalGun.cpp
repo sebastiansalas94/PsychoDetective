@@ -8,6 +8,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 APD_PortalGun::APD_PortalGun() {
 	TraceLenght = 10000.0f;
@@ -16,6 +17,26 @@ APD_PortalGun::APD_PortalGun() {
 
 void APD_PortalGun::StartAction() {
 	Super::StartAction();
+
+	ShootPortal(true);
+
+}
+
+void APD_PortalGun::StopAction() {
+	Super::StopAction();
+}
+
+void APD_PortalGun::StartSecondaryAction() {
+	Super::StartSecondaryAction();
+
+	ShootPortal(false);
+}
+
+void APD_PortalGun::StopSecondaryAction() {
+	Super::StopSecondaryAction();
+}
+
+void APD_PortalGun::ShootPortal(bool bIsPrimaryPortal){
 
 	AActor* CurrentOwner = GetOwner();
 
@@ -32,12 +53,19 @@ void APD_PortalGun::StartAction() {
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.AddIgnoredActor(CurrentOwner);
+		if (IsValid(CurrentPortal)) {
+			QueryParams.AddIgnoredActor(CurrentPortal);
+		}
+		if (IsValid(CurrentPortal2)) {
+			QueryParams.AddIgnoredActor(CurrentPortal2);
+		}
 		QueryParams.bTraceComplex = true;
 
 		FVector TraceEndPoint = TraceEnd;
 
 		FHitResult HitResult;
 		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, EyeLocation, TraceEnd, ECC_Visibility, QueryParams);
+
 
 		if (IsValid(TraceEffect)) {
 			USkeletalMeshComponent* CharacterMeshComponent = CurrentOwnerCharacter->GetMesh();
@@ -50,39 +78,37 @@ void APD_PortalGun::StartAction() {
 					TraceComponent->SetVectorParameter(TraceParamName, TraceEndPoint);
 				}
 			}
-
 		}
 
 		FRotator ActorRotation = HitResult.ImpactNormal.Rotation();
 		ActorRotation.Yaw += 180;
 
 
-		if(CurrentPortal == nullptr)
-			CurrentPortal = GetWorld()->SpawnActor<APD_Portal>(PortalClass, HitResult.ImpactPoint, ActorRotation);
+		if (bIsPrimaryPortal) {
+			if (!IsValid(CurrentPortal))
+				CurrentPortal = GetWorld()->SpawnActor<APD_Portal>(PortalClass, HitResult.ImpactPoint, ActorRotation);
+			else {
+				CurrentPortal->Destroy();
+				CurrentPortal = GetWorld()->SpawnActor<APD_Portal>(PortalClass, HitResult.ImpactPoint, ActorRotation);
+			}
+
+			if (IsValid(CurrentPortal2)) {
+				CurrentPortal->AssignOtherPortal(CurrentPortal2);
+				CurrentPortal2->AssignOtherPortal(CurrentPortal);
+			}
+		}
 		else {
-			CurrentPortal->Destroy();
-			CurrentPortal = GetWorld()->SpawnActor<APD_Portal>(PortalClass, HitResult.ImpactPoint, ActorRotation);
-		}
+			if (!IsValid(CurrentPortal2))
+				CurrentPortal2 = GetWorld()->SpawnActor<APD_Portal>(PortalClass, HitResult.ImpactPoint, ActorRotation);
+			else {
+				CurrentPortal2->Destroy();
+				CurrentPortal2 = GetWorld()->SpawnActor<APD_Portal>(PortalClass, HitResult.ImpactPoint, ActorRotation);
+			}
 
-	}
-}
-
-void APD_PortalGun::StopAction() {
-	Super::StopAction();
-}
-
-void APD_PortalGun::StartSecondaryAction() {
-	Super::StartSecondaryAction();
-
-	if (IsValid(CurrentPortal)) {
-		FVector PortalPosition = CurrentPortal->GetActorLocation();
-		FRotator PortalRotation = CurrentPortal->GetActorRotation();
-
-		AActor* CurrentOwner = GetOwner();
-
-		if (IsValid(CurrentOwner)) {
-			CurrentOwner->TeleportTo(PortalPosition, CurrentOwner->GetActorRotation(), false, true);
+			if (IsValid(CurrentPortal)) {
+				CurrentPortal->AssignOtherPortal(CurrentPortal2);
+				CurrentPortal2->AssignOtherPortal(CurrentPortal);
+			}
 		}
 	}
-
 }
