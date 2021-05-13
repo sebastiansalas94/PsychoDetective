@@ -6,4 +6,5 @@
 
 #define COLLISION_ENEMY		ECC_GameTraceChannel1
 #define COLLISION_WEAPON	ECC_GameTraceChannel2
+#define COLLISION_MELEE		ECC_GameTraceChannel3
 

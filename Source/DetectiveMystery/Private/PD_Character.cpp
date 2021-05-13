@@ -11,7 +11,7 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
-
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -22,8 +22,15 @@ APD_Character::APD_Character()
 	FPSCameraSocketName = "SCK_Camera";
 	MeleeSocketName = "SCK_Melee";
 	bIsFirstPersonView = true;
+	bCanUseWeapon = true;
 	MaxSpeedWalk = 600;
 	MaxSpeedSprint = 1000;
+	MeleeDamage = 10.0f;
+
+
+	MaxComboMultiplier = 4;
+	CurrentComboMultiplier = 1;
+
 
 	FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
 	FPSCameraComponent->bUsePawnControlRotation = true;
@@ -40,6 +47,8 @@ APD_Character::APD_Character()
 	MeleeDetectorComponent->SetupAttachment(GetMesh(), MeleeSocketName);
 	MeleeDetectorComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
+	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_MELEE, ECR_Overlap);
+	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 FVector APD_Character::GetPawnViewLocation() const
@@ -61,6 +70,7 @@ void APD_Character::BeginPlay()
     Super::BeginPlay();
 	InitiliazeReferences();
 	CreateInitialWeapon();
+	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &APD_Character::MakeMeleeDamage);
 }
 
 void APD_Character::InitiliazeReferences() {
@@ -107,6 +117,9 @@ void APD_Character::CreateInitialWeapon() {
 
 void APD_Character::StartWeaponAction() {
 
+	if (!bCanUseWeapon) {
+		return;
+	}
 	if (IsValid(CurrentWeapon)) {
 		CurrentWeapon->StartAction();
 	}
@@ -114,6 +127,9 @@ void APD_Character::StartWeaponAction() {
 
 void APD_Character::StopWeaponAction() {
 
+	if (!bCanUseWeapon) {
+		return;
+	}
 	if (IsValid(CurrentWeapon)) {
 		CurrentWeapon->StopAction();
 	}
@@ -121,6 +137,9 @@ void APD_Character::StopWeaponAction() {
 
 void APD_Character::StartWeaponSecondaryAction() {
 
+	if (!bCanUseWeapon) {
+		return;
+	}
 	if (IsValid(CurrentWeapon)) {
 		CurrentWeapon->StartSecondaryAction();
 	}
@@ -128,19 +147,55 @@ void APD_Character::StartWeaponSecondaryAction() {
 
 void APD_Character::StopWeaponSecondaryAction() {
 
+	if (!bCanUseWeapon) {
+		return;
+	}
 	if (IsValid(CurrentWeapon)) {
 		CurrentWeapon->StopSecondaryAction();
 	}
 }
 
 void APD_Character::StartMeleeAction() {
+
+	if (bIsHittingMelee && !bCanMakeCombos) {
+		return;
+	}
+
+	if (bCanMakeCombos) {
+
+		if (bIsHittingMelee) {
+
+			if (bIsComboEnable) {
+				if (CurrentComboMultiplier < MaxComboMultiplier) {
+					UE_LOG(LogTemp, Warning, TEXT("Se está ejecutando el combo: %d"), CurrentComboMultiplier)
+					CurrentComboMultiplier++;
+					SetComboEnable(false);
+				}
+				else {
+					return;
+				}
+			}
+			else {
+				return;
+			}
+		}
+	}
+
 	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage)) {
 		MyAnimInstance->Montage_Play(MeleeMontage);
 	}
+	SetMeleeState(true);
 }
 
 void APD_Character::StopMeleeAction() {
 	UE_LOG(LogTemp, Warning, TEXT("Stop melee action"));
+}
+
+void APD_Character::MakeMeleeDamage(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	if (IsValid(OtherActor)) {
+		UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+	}
 }
 
 void APD_Character::AddControllerPitchInput(float value){
@@ -191,6 +246,28 @@ void APD_Character::AddKey(FName newKey){
 
 bool APD_Character::HasKey(FName keyTag){
     return DoorKeys.Contains(keyTag);
+}
+
+void APD_Character::SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState)
+{
+	MeleeDetectorComponent->SetCollisionEnabled(NewCollisionState);
+}
+
+void APD_Character::SetMeleeState(bool NewState)
+{
+	bIsHittingMelee = NewState;
+	bCanUseWeapon = !NewState;
+}
+
+void APD_Character::SetComboEnable(bool NewState)
+{
+	bIsComboEnable = NewState;
+}
+
+void APD_Character::ResetCombo()
+{
+	SetComboEnable(false);
+	CurrentComboMultiplier = 1.0f;
 }
 
 //TODO - Implementación del metodo para interactuar con objetos

@@ -32,6 +32,7 @@ protected:
 	UCapsuleComponent* MeleeDetectorComponent;
     
 protected:
+
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
     bool bIsLookInversion;
 
@@ -44,6 +45,27 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 	FName MeleeSocketName;
     
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+	float MeleeDamage;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Melee")
+	bool bIsHittingMelee;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+	bool bCanMakeCombos;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+	bool bIsComboEnable;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	bool bCanUseWeapon;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
+	float MaxComboMultiplier;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
+	float CurrentComboMultiplier;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
     TArray<FName> DoorKeys;
     
@@ -97,6 +119,9 @@ protected:
 
 	void StartMeleeAction();
 	void StopMeleeAction();
+
+	UFUNCTION()
+	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
     
 public:
     // Called every frame
@@ -113,4 +138,15 @@ public:
     void AddKey(FName newKey);
     
     bool HasKey(FName keyTag);
+
+	void SetMeleeDetectorCollision(ECollisionEnabled::Type NewCollisionState);
+
+	void SetMeleeState(bool NewState);
+
+	UFUNCTION(BlueprintCallable)
+	void SetComboEnable(bool NewState);
+
+	UFUNCTION(BlueprintCallable)
+	void ResetCombo();
+	
 };
