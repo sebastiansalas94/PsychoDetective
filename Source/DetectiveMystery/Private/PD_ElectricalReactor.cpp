@@ -40,7 +40,6 @@ void APD_ElectricalReactor::Tick(float DeltaTime)
 void APD_ElectricalReactor::NotifyActorBeginOverlap(AActor* OtherActor) {
 	Super::NotifyActorBeginOverlap(OtherActor);
 
-	UE_LOG(LogTemp, Warning, TEXT("OtherActor: %d"), OtherActor->GetClass())
 	if (IsValid(OtherActor)) {
 		APD_Character* OverlappedCharacter = Cast<APD_Character>(OtherActor);
 		if (IsValid(OverlappedCharacter) && IsValid(ElectricalDoor)) {

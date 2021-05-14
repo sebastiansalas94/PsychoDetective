@@ -81,6 +81,4 @@ void APD_Rifle::StartAction() {
 
 void APD_Rifle::StopAction() {
 	Super::StopAction();
-
-	UE_LOG(LogTemp, Log, TEXT("Player stops firing!"));
 }
