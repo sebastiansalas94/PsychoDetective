@@ -12,6 +12,7 @@
 #include "Animation/AnimMontage.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/PD_HealthComponent.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -49,6 +50,8 @@ APD_Character::APD_Character()
 	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_ENEMY, ECR_Overlap);
 	MeleeDetectorComponent->SetCollisionResponseToChannel(COLLISION_MELEE, ECR_Overlap);
 	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	HealthComponent = CreateDefaultSubobject<UPD_HealthComponent>(TEXT("HealthComponent"));
 }
 
 FVector APD_Character::GetPawnViewLocation() const

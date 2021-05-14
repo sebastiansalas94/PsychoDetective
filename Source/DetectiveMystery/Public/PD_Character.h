@@ -11,6 +11,7 @@ class UCameraComponent;
 class APD_Weapon;
 class UAnimMontage;
 class UAnimInstance;
+class UPD_HealthComponent;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Character : public ACharacter
@@ -30,6 +31,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UCapsuleComponent* MeleeDetectorComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UPD_HealthComponent* HealthComponent;
     
 protected:
 
