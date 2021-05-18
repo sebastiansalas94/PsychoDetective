@@ -13,6 +13,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/PD_HealthComponent.h"
+#include "Core/PD_GameMode.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -74,12 +75,16 @@ void APD_Character::BeginPlay()
 	InitiliazeReferences();
 	CreateInitialWeapon();
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &APD_Character::MakeMeleeDamage);
+
+	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_Character::OnHealthChange);
 }
 
 void APD_Character::InitiliazeReferences() {
 	if (IsValid(GetMesh())) {
 		MyAnimInstance = GetMesh()->GetAnimInstance();
 	}
+
+	GameModeReference = Cast<APD_GameMode>(GetWorld()->GetAuthGameMode());
 }
 
 void APD_Character::MoveForward(float value){
@@ -160,6 +165,8 @@ void APD_Character::StopWeaponSecondaryAction() {
 
 void APD_Character::StartMeleeAction() {
 
+	UE_LOG(LogTemp, Warning, TEXT("Entra al Melee"))
+
 	if (bIsHittingMelee && !bCanMakeCombos) {
 		return;
 	}
@@ -198,6 +205,17 @@ void APD_Character::MakeMeleeDamage(UPrimitiveComponent * OverlappedComponent, A
 {
 	if (IsValid(OtherActor)) {
 		UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+	}
+}
+
+void APD_Character::OnHealthChange(UPD_HealthComponent * CurrentHealthComponent, AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
+{
+	if (HealthComponent->IsDead()) 
+	{
+		if (IsValid(GameModeReference)) 
+		{
+			GameModeReference->GameOver(this);
+		}
 	}
 }
 

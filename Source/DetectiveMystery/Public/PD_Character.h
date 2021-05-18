@@ -12,6 +12,7 @@ class APD_Weapon;
 class UAnimMontage;
 class UAnimInstance;
 class UPD_HealthComponent;
+class APD_GameMode;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Character : public ACharacter
@@ -43,15 +44,6 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
     bool bIsFirstPersonView;
     
-    UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
-    FName FPSCameraSocketName;
-
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
-	FName MeleeSocketName;
-    
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
-	float MeleeDamage;
-
 	UPROPERTY(BlueprintReadOnly, Category = "Melee")
 	bool bIsHittingMelee;
 
@@ -64,21 +56,33 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	bool bCanUseWeapon;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Game Over")
+	bool bHasToDestroy;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+	float MeleeDamage;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
 	float MaxComboMultiplier;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Melee", meta = (EditCondition = bCanMakeCombos, ClampMin = 1.0, UIMin = 1.0))
 	float CurrentComboMultiplier;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
-    TArray<FName> DoorKeys;
-    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
     float MaxSpeedWalk;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
     float MaxSpeedSprint;
     
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
+	FName FPSCameraSocketName;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
+	FName MeleeSocketName;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
+	TArray<FName> DoorKeys;
+
 	//TSubclass of es la referencia de la clase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	TSubclassOf<APD_Weapon> InitialWeaponClass;
@@ -91,6 +95,8 @@ protected:
 	UAnimMontage* MeleeMontage;
 
 	UAnimInstance* MyAnimInstance;
+
+	APD_GameMode* GameModeReference;
 
 public:
     // Sets default values for this character's properties
@@ -127,6 +133,9 @@ protected:
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
     
+	UFUNCTION()
+	void OnHealthChange(UPD_HealthComponent* CurrentHealthComponent, AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser);
+
 public:
     // Called every frame
     virtual void Tick(float DeltaTime) override;
@@ -152,5 +161,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void ResetCombo();
+
+	bool HasToDestroy() { return bHasToDestroy; };
 	
 };
