@@ -40,12 +40,15 @@ void APD_ElectricalReactor::Tick(float DeltaTime)
 void APD_ElectricalReactor::NotifyActorBeginOverlap(AActor* OtherActor) {
 	Super::NotifyActorBeginOverlap(OtherActor);
 
-	if (IsValid(OtherActor)) {
-		APD_Character* OverlappedCharacter = Cast<APD_Character>(OtherActor);
-		if (IsValid(OverlappedCharacter) && IsValid(ElectricalDoor)) {
-			bIsWorking = false;
-			ExplodeReactor();
-			ElectricalDoor->ValidateToOpenDoor();
+	if (bIsWorking)
+	{
+		if (IsValid(OtherActor)) {
+			APD_Character* OverlappedCharacter = Cast<APD_Character>(OtherActor);
+			if (IsValid(OverlappedCharacter) && IsValid(ElectricalDoor)) {
+				bIsWorking = false;
+				ExplodeReactor();
+				ElectricalDoor->ValidateToOpenDoor();
+			}
 		}
 	}
 }
