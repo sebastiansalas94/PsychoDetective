@@ -56,6 +56,9 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
 	bool bCanUseWeapon;
 
+	UPROPERTY(BlueprintReadOnly, Category = "StatusAilment")
+	bool bIsBurning;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Game Over")
 	bool bHasToDestroy;
 
@@ -73,6 +76,9 @@ protected:
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sprint")
     float MaxSpeedSprint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "StatusAilment")
+	float BurnDamage;
     
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Aiming")
 	FName FPSCameraSocketName;
@@ -80,12 +86,18 @@ protected:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Melee")
 	FName MeleeSocketName;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	FName BurnStatusSocketName;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 	TArray<FName> DoorKeys;
 
 	//TSubclass of es la referencia de la clase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	TSubclassOf<APD_Weapon> InitialWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ExplosiveBarrel")
+	TSubclassOf<UDamageType> DamageTypeSubClass;
 
 	//Esta es la referencia del objeto en escena
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
@@ -96,7 +108,22 @@ protected:
 
 	UAnimInstance* MyAnimInstance;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UParticleSystem* BurnEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UParticleSystemComponent* BurnEffectComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	USoundBase* BurnSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UAudioComponent* BurnSoundComponent;
+
 	APD_GameMode* GameModeReference;
+
+	//Handle para el timer
+	FTimerHandle UnusedHandle;
 
 public:
     // Sets default values for this character's properties
@@ -163,5 +190,8 @@ public:
 	void ResetCombo();
 
 	bool HasToDestroy() { return bHasToDestroy; };
-	
+
+	void BeginBurnState(float NewBurnDamage);
+
+	void EndBurnState();
 };

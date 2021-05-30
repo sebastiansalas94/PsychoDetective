@@ -14,6 +14,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/PD_HealthComponent.h"
 #include "Core/PD_GameMode.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Components/AudioComponent.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -23,6 +25,7 @@ APD_Character::APD_Character()
 
 	FPSCameraSocketName = "SCK_Camera";
 	MeleeSocketName = "SCK_Melee";
+	BurnStatusSocketName = "pelvis";
 	bIsFirstPersonView = true;
 	bCanUseWeapon = true;
 	MaxSpeedWalk = 600;
@@ -165,8 +168,6 @@ void APD_Character::StopWeaponSecondaryAction() {
 
 void APD_Character::StartMeleeAction() {
 
-	UE_LOG(LogTemp, Warning, TEXT("Entra al Melee"))
-
 	if (bIsHittingMelee && !bCanMakeCombos) {
 		return;
 	}
@@ -177,7 +178,6 @@ void APD_Character::StartMeleeAction() {
 
 			if (bIsComboEnable) {
 				if (CurrentComboMultiplier < MaxComboMultiplier) {
-					UE_LOG(LogTemp, Warning, TEXT("Se está ejecutando el combo: %d"), CurrentComboMultiplier)
 					CurrentComboMultiplier++;
 					SetComboEnable(false);
 				}
@@ -227,6 +227,11 @@ void APD_Character::AddControllerPitchInput(float value){
 void APD_Character::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+	if (bIsBurning)
+	{
+		UGameplayStatics::ApplyDamage(this, BurnDamage * FApp::GetDeltaTime(), GetInstigatorController(), this, DamageTypeSubClass);
+	}
 
 }
 
@@ -289,6 +294,39 @@ void APD_Character::ResetCombo()
 {
 	SetComboEnable(false);
 	CurrentComboMultiplier = 1.0f;
+}
+
+void APD_Character::BeginBurnState(float NewBurnDamage)
+{
+	bIsBurning = true;
+	BurnDamage = NewBurnDamage;
+
+	if(IsValid(BurnEffect))
+	{
+		BurnEffectComponent = UGameplayStatics::SpawnEmitterAttached(BurnEffect, GetMesh(), BurnStatusSocketName);
+	}
+
+	if (IsValid(BurnSound))
+	{
+		BurnSoundComponent = UGameplayStatics::SpawnSoundAttached(BurnSound, GetMesh(), BurnStatusSocketName);
+	}
+	GetWorldTimerManager().SetTimer(UnusedHandle, this, &APD_Character::EndBurnState, 5, false);
+}
+
+void APD_Character::EndBurnState()
+{
+	bIsBurning = false; 
+	BurnDamage = 0.0f;
+
+	if (IsValid(BurnEffectComponent))
+	{
+		BurnEffectComponent->Deactivate();
+	}
+
+	if (IsValid(BurnSoundComponent))
+	{
+		BurnSoundComponent->Deactivate();
+	}
 }
 
 //TODO - Implementación del metodo para interactuar con objetos
