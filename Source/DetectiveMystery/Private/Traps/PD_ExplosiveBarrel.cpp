@@ -65,6 +65,8 @@ void APD_ExplosiveBarrel::OnHealthChange(UPD_HealthComponent * CurrentHealthComp
 		}
 	}
 
+	BP_MakeExplodeEffects();
+
 	if (HealthComponent->IsDead())
 	{
 		DestroyExplosiveBarrel();
@@ -73,6 +75,6 @@ void APD_ExplosiveBarrel::OnHealthChange(UPD_HealthComponent * CurrentHealthComp
 
 void APD_ExplosiveBarrel::DestroyExplosiveBarrel()
 {
-	BP_MakeExplodeEffects();
+
 	Destroy();
 }
