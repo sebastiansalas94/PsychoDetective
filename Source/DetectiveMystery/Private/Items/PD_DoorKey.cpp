@@ -11,6 +11,7 @@ APD_DoorKey::APD_DoorKey()
     KeyMeshComponent->SetupAttachment(RootComponent);
     //KeyMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     
+	XPValue = 40.0f;
     KeyTag = "KeyA";
 }
 
@@ -18,5 +19,6 @@ void APD_DoorKey::PickUp(APD_Character* PickUpCharacter){
     Super::PickUp(PickUpCharacter);
     
     PickUpCharacter->AddKey(KeyTag);
+	PickUpCharacter->GainUltimateXP(XPValue);
     Destroy();
 }

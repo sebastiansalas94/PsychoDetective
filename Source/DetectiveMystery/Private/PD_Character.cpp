@@ -32,6 +32,10 @@ APD_Character::APD_Character()
 	MaxSpeedSprint = 1000;
 	MeleeDamage = 10.0f;
 
+	bUltimateWithTick = true;
+	MaxUltimateXP = 100.0f;
+	MaxUltimateDuration = 10.0f;
+	UltimateFrequency = 0.5f;
 
 	MaxComboMultiplier = 4;
 	CurrentComboMultiplier = 1;
@@ -56,6 +60,14 @@ APD_Character::APD_Character()
 	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	HealthComponent = CreateDefaultSubobject<UPD_HealthComponent>(TEXT("HealthComponent"));
+
+	UltimateWalkSpeed = 1000.0f;
+	UltimatePlayRate = 2.0f;
+	PlayRate = 1.0f;
+	UltimateShotFrequency = 0.25f;
+
+	SlowTimeUltimateFrequency = 0.2f;
+	SlowTimeUltimateMinusValue = 1.0f;
 }
 
 FVector APD_Character::GetPawnViewLocation() const
@@ -80,6 +92,8 @@ void APD_Character::BeginPlay()
 	MeleeDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &APD_Character::MakeMeleeDamage);
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_Character::OnHealthChange);
+
+	NormalWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 }
 
 void APD_Character::InitiliazeReferences() {
@@ -133,6 +147,12 @@ void APD_Character::StartWeaponAction() {
 	}
 	if (IsValid(CurrentWeapon)) {
 		CurrentWeapon->StartAction();
+
+		if (bIsUsingUltimate)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandleAutomaticShoot, CurrentWeapon, &APD_Weapon::StartAction, UltimateShotFrequency, true);
+		}
+
 	}
 }
 
@@ -143,6 +163,11 @@ void APD_Character::StopWeaponAction() {
 	}
 	if (IsValid(CurrentWeapon)) {
 		CurrentWeapon->StopAction();
+
+		if (bIsUsingUltimate)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandleAutomaticShoot);
+		}
 	}
 }
 
@@ -192,7 +217,7 @@ void APD_Character::StartMeleeAction() {
 	}
 
 	if (IsValid(MyAnimInstance) && IsValid(MeleeMontage)) {
-		MyAnimInstance->Montage_Play(MeleeMontage);
+		MyAnimInstance->Montage_Play(MeleeMontage, PlayRate);
 	}
 	SetMeleeState(true);
 }
@@ -233,6 +258,10 @@ void APD_Character::Tick(float DeltaTime)
 		UGameplayStatics::ApplyDamage(this, BurnDamage * FApp::GetDeltaTime(), GetInstigatorController(), this, DamageTypeSubClass);
 	}
 
+	if (bUltimateWithTick && bIsUsingUltimate) {
+		UpdateUltimateDuration(DeltaTime);
+	}
+
 }
 
 // Called to bind functionality to input
@@ -263,6 +292,8 @@ void APD_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("MeleeAction", IE_Pressed, this, &APD_Character::StartMeleeAction);
 	PlayerInputComponent->BindAction("MeleeAction", IE_Released, this, &APD_Character::StopMeleeAction);
 
+	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &APD_Character::StartSlowTimeUltimate);
+	PlayerInputComponent->BindAction("Ultimate", IE_Released, this, &APD_Character::StopSlowTimeUltimate);
 
 }
 
@@ -328,6 +359,172 @@ void APD_Character::EndBurnState()
 		BurnSoundComponent->Deactivate();
 	}
 }
+
+void APD_Character::GainUltimateXP(float XPGained)
+{
+	if (bCanUseUltimate || bIsUsingUltimate) 
+	{
+		return;
+	}
+
+	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPGained, 0.0f, MaxUltimateXP);
+
+	if (CurrentUltimateXP == MaxUltimateXP) 
+	{
+		bCanUseUltimate = true;
+	}
+
+	BP_GainUltimateXP(XPGained);
+
+}
+
+#pragma region "Class Ultimate"
+
+void APD_Character::StartUltimate()
+{
+	if (bCanUseUltimate && !bIsUsingUltimate)
+	{
+		CurrentUltimateDuration = MaxUltimateDuration;
+
+		bCanUseUltimate = false;
+
+		if (IsValid(MyAnimInstance) && IsValid(UltimateMontage))
+		{
+			const float StartUltimateMontageDuration = MyAnimInstance->Montage_Play(UltimateMontage);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandleBeginUltimateBehavior, this, &APD_Character::BeginUltimateBehavior, StartUltimateMontageDuration, false);
+		}
+		else
+		{
+			BeginUltimateBehavior();
+		}
+
+		BP_StartUltimate();
+	}
+}
+
+void APD_Character::StopUltimate()
+{
+}
+
+void APD_Character::UpdateUltimateDuration(float Value)
+{
+	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
+	BP_UpdateUltimateDuration(Value);
+
+	if (CurrentUltimateDuration == 0.0f) 
+	{
+		bIsUsingUltimate = false;
+
+		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
+		PlayRate = 1.0f;
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandleAutomaticShoot);
+
+		if (!bUltimateWithTick)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandleUltimate);
+		}
+
+		BP_StopUltimate();
+	}
+}
+
+void APD_Character::UpdateUltimateDurationWithTimer()
+{
+	UpdateUltimateDuration(UltimateFrequency);
+}
+
+void APD_Character::BeginUltimateBehavior()
+{
+	bIsUsingUltimate = true;
+	GetCharacterMovement()->MaxWalkSpeed = UltimateWalkSpeed;
+	PlayRate = UltimatePlayRate;
+
+	if (!bUltimateWithTick)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandleUltimate, this, &APD_Character::UpdateUltimateDurationWithTimer, UltimateFrequency, true);
+	}
+}
+
+#pragma endregion
+
+#pragma region "Slow Time Ultimate"
+
+void APD_Character::StartSlowTimeUltimate()
+{
+	if (bCanUseUltimate && !bIsUsingUltimate)
+	{
+		CurrentUltimateDuration = MaxUltimateDuration;
+
+		bCanUseUltimate = false;
+
+		if (IsValid(MyAnimInstance) && IsValid(UltimateSlowTimeMontage))
+		{
+			const float StartUltimateMontageDuration = MyAnimInstance->Montage_Play(UltimateSlowTimeMontage);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandleBeginUltimateBehavior, this, &APD_Character::SlowTime, StartUltimateMontageDuration, false);
+		}
+		else
+		{
+			BeginUltimateBehavior();
+		}
+		BP_StartUltimateVisualEffect();
+		BP_StartUltimate();
+	}
+}
+
+void APD_Character::StopSlowTimeUltimate()
+{
+}
+
+void APD_Character::SlowTime()
+{
+	GetWorld()->GetWorldSettings()->SetTimeDilation(0.2f);
+	CustomTimeDilation = 5.0f;
+	BeginSlowTimeUltimateBehavior();
+}
+
+void APD_Character::UpdateSlowTimeUltimateDuration(float Value)
+{
+	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
+	BP_UpdateUltimateDuration(Value);
+
+	if (CurrentUltimateDuration == 0.0f)
+	{
+		bIsUsingUltimate = false;
+
+		GetWorld()->GetWorldSettings()->SetTimeDilation(1.0f);
+		CustomTimeDilation = 1.0f;
+		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
+		PlayRate = 1.0f;
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandleAutomaticShoot);
+
+		if (!bUltimateWithTick)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandleUltimate);
+		}
+
+		BP_StopUltimate();
+	}
+}
+
+void APD_Character::UpdateSlowTimeUltimateDurationWithTimer()
+{
+	UpdateSlowTimeUltimateDuration(SlowTimeUltimateMinusValue);
+}
+
+void APD_Character::BeginSlowTimeUltimateBehavior()
+{
+	bIsUsingUltimate = true;
+	BP_StartUltimateSoundEffect();
+	GetCharacterMovement()->MaxWalkSpeed = UltimateWalkSpeed;
+	PlayRate = UltimatePlayRate;
+
+	if (!bUltimateWithTick)
+	{
+		GetWorld()->GetTimerManager().SetTimer(TimerHandleUltimate, this, &APD_Character::UpdateSlowTimeUltimateDurationWithTimer, SlowTimeUltimateFrequency, true);
+	}
+}
+
+#pragma endregion
 
 //TODO - Implementación del metodo para interactuar con objetos
 void APD_Character::Interact() {
