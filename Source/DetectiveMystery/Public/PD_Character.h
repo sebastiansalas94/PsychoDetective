@@ -184,6 +184,8 @@ protected:
 
 	FTimerHandle TimerHandleBeginSlowTimeUltimateBehavior;
 
+	FTimerHandle TimerHandleGainXPUltimateOverTimeBehavior;
+
 public:
     // Sets default values for this character's properties
     APD_Character();
@@ -261,7 +263,7 @@ public:
 	void EndBurnState();
 
 	UFUNCTION(BlueprintCallable)
-	void GainUltimateXP(float XPGained);
+	void GainUltimateXP();
 
 	void UpdateUltimateDuration(float Value);
 
@@ -276,6 +278,8 @@ public:
 	void SlowTime();
 
 	void BeginSlowTimeUltimateBehavior();
+
+	void AddXPUltimateOverTime();
 
 protected: 
 

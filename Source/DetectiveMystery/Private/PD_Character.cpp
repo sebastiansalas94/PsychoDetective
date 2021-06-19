@@ -94,6 +94,7 @@ void APD_Character::BeginPlay()
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_Character::OnHealthChange);
 
 	NormalWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
+	AddXPUltimateOverTime();
 }
 
 void APD_Character::InitiliazeReferences() {
@@ -360,21 +361,26 @@ void APD_Character::EndBurnState()
 	}
 }
 
-void APD_Character::GainUltimateXP(float XPGained)
+void APD_Character::AddXPUltimateOverTime()
 {
-	if (bCanUseUltimate || bIsUsingUltimate) 
+	GetWorld()->GetTimerManager().SetTimer(TimerHandleGainXPUltimateOverTimeBehavior, this, &APD_Character::GainUltimateXP, 1.0f, true);
+}
+
+void APD_Character::GainUltimateXP()
+{
+	if (bCanUseUltimate || bIsUsingUltimate)
 	{
 		return;
 	}
 
-	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPGained, 0.0f, MaxUltimateXP);
+	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + 10, 0.0f, MaxUltimateXP);
 
-	if (CurrentUltimateXP == MaxUltimateXP) 
+	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
 	}
 
-	BP_GainUltimateXP(XPGained);
+	BP_GainUltimateXP(10);
 
 }
 
@@ -495,6 +501,7 @@ void APD_Character::UpdateSlowTimeUltimateDuration(float Value)
 		CustomTimeDilation = 1.0f;
 		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 		PlayRate = 1.0f;
+		CurrentUltimateXP = 0.0f;
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandleAutomaticShoot);
 
 		if (!bUltimateWithTick)

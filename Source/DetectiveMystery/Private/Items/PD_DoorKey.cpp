@@ -19,6 +19,5 @@ void APD_DoorKey::PickUp(APD_Character* PickUpCharacter){
     Super::PickUp(PickUpCharacter);
     
     PickUpCharacter->AddKey(KeyTag);
-	PickUpCharacter->GainUltimateXP(XPValue);
-    Destroy();
+	Destroy();
 }
