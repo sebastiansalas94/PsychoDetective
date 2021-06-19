@@ -368,16 +368,12 @@ void APD_Character::AddXPUltimateOverTime()
 
 void APD_Character::GainUltimateXP()
 {
-	if (bCanUseUltimate || bIsUsingUltimate)
-	{
-		return;
-	}
-
 	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + 10, 0.0f, MaxUltimateXP);
 
 	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandleGainXPUltimateOverTimeBehavior);
 	}
 
 	BP_GainUltimateXP(10);
@@ -496,12 +492,13 @@ void APD_Character::UpdateSlowTimeUltimateDuration(float Value)
 	if (CurrentUltimateDuration == 0.0f)
 	{
 		bIsUsingUltimate = false;
+		CurrentUltimateXP = 0.0f;
+		AddXPUltimateOverTime();
 
 		GetWorld()->GetWorldSettings()->SetTimeDilation(1.0f);
 		CustomTimeDilation = 1.0f;
 		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 		PlayRate = 1.0f;
-		CurrentUltimateXP = 0.0f;
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandleAutomaticShoot);
 
 		if (!bUltimateWithTick)
