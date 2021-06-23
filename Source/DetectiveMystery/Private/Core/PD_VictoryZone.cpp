@@ -38,7 +38,7 @@ void APD_VictoryZone::NotifyActorBeginOverlap(AActor* OtherActor)
 {
 	if (IsValid(OtherActor) && IsValid(GameModeReference)) {
 		APD_Character* PDCharacter = Cast<APD_Character>(OtherActor);
-		if (IsValid(PDCharacter)) {
+		if (IsValid(PDCharacter) && PDCharacter->GetCharacterType() == EPD_CharacterType::CharacterType_Player) {
 			GameModeReference->Victory(PDCharacter);
 		}
 	}

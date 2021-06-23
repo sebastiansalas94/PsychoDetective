@@ -65,7 +65,7 @@ void APD_Door::CheckKeyFromPlayer(UPrimitiveComponent* OverlappedComponent, AAct
     if(IsValid(OtherActor)){
         APD_Character* OverlappedCharacter = Cast<APD_Character>(OtherActor);
         
-        if(IsValid(OverlappedCharacter)){
+        if(IsValid(OverlappedCharacter) && OverlappedCharacter->GetCharacterType() == EPD_CharacterType::CharacterType_Player){
             if(OverlappedCharacter->HasKey(DoorTag)){
                 OpenDoor();
             }

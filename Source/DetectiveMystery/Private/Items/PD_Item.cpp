@@ -40,7 +40,7 @@ void APD_Item::NotifyActorBeginOverlap(AActor* OtherActor){
     
     if(IsValid(OtherActor)){
         APD_Character* OverlappedCharacter = Cast<APD_Character>(OtherActor);
-        if(IsValid(OverlappedCharacter)){
+        if(IsValid(OverlappedCharacter) && OverlappedCharacter->GetCharacterType() == EPD_CharacterType::CharacterType_Player){
             PickUp(OverlappedCharacter);
         }
     }

@@ -14,6 +14,14 @@ class UAnimInstance;
 class UPD_HealthComponent;
 class APD_GameMode;
 
+
+UENUM()
+enum class EPD_CharacterType : uint8
+{
+	CharacterType_Player	UMETA(DisplayName = "Player"),
+	CharacterType_Enemy	UMETA(DisplayName = "Enemy")
+};
+
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Character : public ACharacter
 {
@@ -136,6 +144,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 	TArray<FName> DoorKeys;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	EPD_CharacterType CharacterType;
 
 	//TSubclass of es la referencia de la clase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
@@ -280,6 +291,9 @@ public:
 	void BeginSlowTimeUltimateBehavior();
 
 	void AddXPUltimateOverTime();
+
+	UFUNCTION(BlueprintCallable)
+	EPD_CharacterType GetCharacterType() { return CharacterType; };
 
 protected: 
 

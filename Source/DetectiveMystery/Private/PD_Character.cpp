@@ -236,7 +236,7 @@ void APD_Character::MakeMeleeDamage(UPrimitiveComponent * OverlappedComponent, A
 
 void APD_Character::OnHealthChange(UPD_HealthComponent * CurrentHealthComponent, AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (HealthComponent->IsDead()) 
+	if (HealthComponent->IsDead() && GetCharacterType() == EPD_CharacterType::CharacterType_Player)
 	{
 		if (IsValid(GameModeReference)) 
 		{
