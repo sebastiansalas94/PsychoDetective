@@ -226,7 +226,9 @@ protected:
 	void StartWeaponSecondaryAction();
 	void StopWeaponSecondaryAction();
 
+	UFUNCTION(BlueprintCallable)
 	void StartMeleeAction();
+	
 	void StopMeleeAction();
 
 	void StartUltimate();

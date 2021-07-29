@@ -230,7 +230,33 @@ void APD_Character::StopMeleeAction() {
 void APD_Character::MakeMeleeDamage(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (IsValid(OtherActor)) {
-		UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+
+		if (OtherActor == this)
+		{
+			return;
+		}
+
+		APD_Character* MeleeTarget = Cast<APD_Character>(OtherActor);
+		UE_LOG(LogTemp, Verbose, TEXT("MeleeTarget: %s"), MeleeTarget);
+		if (IsValid(MeleeTarget))
+		{
+			bool bPlayerAttackingEnemy = GetCharacterType() == EPD_CharacterType::CharacterType_Player && MeleeTarget->GetCharacterType() == EPD_CharacterType::CharacterType_Enemy;
+			bool bEnemyAttackingPlayer = GetCharacterType() == EPD_CharacterType::CharacterType_Enemy && MeleeTarget->GetCharacterType() == EPD_CharacterType::CharacterType_Player;
+
+			UE_LOG(LogTemp, Verbose, TEXT("bPlayerAttackingEnemy: %b"), bPlayerAttackingEnemy);
+			UE_LOG(LogTemp, Verbose, TEXT("bEnemyAttackingPlayer: %b"), bEnemyAttackingPlayer);
+
+			if (bPlayerAttackingEnemy || bEnemyAttackingPlayer)
+			{
+				UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+			}
+		}
+		else
+		{
+			UGameplayStatics::ApplyPointDamage(OtherActor, MeleeDamage * CurrentComboMultiplier, SweepResult.Location, SweepResult, GetInstigatorController(), this, nullptr);
+		}
+
+
 	}
 }
 
