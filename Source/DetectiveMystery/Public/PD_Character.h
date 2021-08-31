@@ -220,6 +220,7 @@ protected:
 
 	void CreateInitialWeapon();
 
+	UFUNCTION(BlueprintCallable)
 	void StartWeaponAction();
 	void StopWeaponAction();
 

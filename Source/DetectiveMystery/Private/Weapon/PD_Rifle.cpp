@@ -9,6 +9,8 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "PD_Character.h"
+#include "Math/UnrealMathUtility.h"
 
 APD_Rifle::APD_Rifle() {
 	TraceLenght = 10000.0f;
@@ -28,7 +30,22 @@ void APD_Rifle::StartAction() {
 		CurrentOwner->GetActorEyesViewPoint(EyeLocation, EyeRotation);
 
 		FVector ShotDirection = EyeRotation.Vector();
-		FVector TraceEnd = EyeLocation + (EyeRotation.Vector() * TraceLenght);
+		FVector TraceEnd;
+
+		APD_Character* CurrentOwnerPDCharacter = Cast<APD_Character>(CurrentOwner);
+		EPD_CharacterType OwnerType = CurrentOwnerPDCharacter->GetCharacterType();
+		if (OwnerType == EPD_CharacterType::CharacterType_Player)
+		{
+			TraceEnd = EyeLocation + (EyeRotation.Vector() * TraceLenght);
+		}
+		else
+		{
+			int randomNumberYaw = FMath::RandRange(-DegreeRangeYaw, DegreeRangeYaw);
+			int randomNumberPitch = FMath::RandRange(-DegreeRangePitch, DegreeRangePitch);
+			EyeRotation.Yaw += randomNumberYaw;
+			EyeRotation.Pitch += randomNumberPitch;
+			TraceEnd = EyeLocation + (EyeRotation.Vector() * TraceLenght);
+		}
 
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(this);

@@ -27,6 +27,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LineTrace")
 	float TraceLenght;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LineTrace")
+	int DegreeRangeYaw;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "LineTrace")
+	int DegreeRangePitch;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	FName MuzzleSocketName;
 
