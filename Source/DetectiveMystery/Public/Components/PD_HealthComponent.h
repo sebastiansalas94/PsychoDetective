@@ -19,6 +19,9 @@ protected:
 	bool bDebug;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Health Component")
+	bool bIsDefenseUp;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Health Component")
 	bool bIsDead;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Health Component")
@@ -43,6 +46,18 @@ public:
 	bool IsDead() const { return bIsDead; };
 
 	void SetMaxHealth(float NewMaxHealth) { MaxHealth = NewMaxHealth; };
+
+	void HealHealth(float CureValue);
+
+	float GetMaxHealth() { return MaxHealth; };
+
+	float GetCurrentHealth() { return Health; };
+
+	void SetDefenseUpBuff();
+
+	void EndDefenseUpBuff();
+
+	bool GetDefenseUp() { return bIsDefenseUp; };
 
 protected:
 	// Called when the game starts

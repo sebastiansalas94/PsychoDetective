@@ -45,6 +45,8 @@ void APD_Bot::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UE_LOG(LogTemp, Verbose, TEXT("Entró a BeginPlay - Bot"));
+
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (IsValid(PlayerPawn))
 	{

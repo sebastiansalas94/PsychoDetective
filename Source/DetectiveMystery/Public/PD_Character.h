@@ -298,6 +298,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	EPD_CharacterType GetCharacterType() { return CharacterType; };
 
+	UPD_HealthComponent* GetHealthComponent() { return HealthComponent; }
+
 protected: 
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
