@@ -49,6 +49,7 @@ void UPD_HealthComponent::TakingDamage(AActor * DamagedActor, float Damage, cons
 
 	if (Health == 0.0f) {
 		bIsDead = true;
+		OnDeadDelegate.Broadcast(DamageCauser);
 	}
 
 	if (bIsDefenseUp)
@@ -65,8 +66,25 @@ void UPD_HealthComponent::TakingDamage(AActor * DamagedActor, float Damage, cons
 	}
 }
 
-void UPD_HealthComponent::HealHealth(float CureValue)
+bool UPD_HealthComponent::HealHealth(float CureValue)
 {
+	if (bIsDead)
+	{
+		return false;
+	}
+
+	if (Health == MaxHealth)
+	{
+		return false;
+	}
+
 	Health = FMath::Clamp(Health + CureValue, 0.0f, MaxHealth);
+
+	if (bDebug)
+	{
+		UE_LOG(LogTemp, Log, TEXT("My Health is: %s"), *FString::SanitizeFloat(Health));
+	}
+
+	return true;
 }
 

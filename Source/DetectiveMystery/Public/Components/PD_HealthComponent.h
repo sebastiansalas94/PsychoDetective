@@ -7,6 +7,7 @@
 #include "PD_HealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, UPD_HealthComponent*, HealthComponent, AActor *, DamagedActor, float, Damage, const UDamageType *, DamageType, AController *, InstigatedBy, AActor *, DamageCauser);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeadSignature, AActor*, DamageCause);
 
 UCLASS( ClassGroup=(PSYCHO), meta=(BlueprintSpawnableComponent) )
 class DETECTIVEMYSTERY_API UPD_HealthComponent : public UActorComponent
@@ -38,6 +39,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnHealthChangeSignature OnHealthChangeDelegate;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnDeadSignature OnDeadDelegate;
+
 public:	
 	// Sets default values for this component's properties
 	UPD_HealthComponent();
@@ -47,7 +51,7 @@ public:
 
 	void SetMaxHealth(float NewMaxHealth) { MaxHealth = NewMaxHealth; };
 
-	void HealHealth(float CureValue);
+	bool HealHealth(float CureValue);
 
 	float GetMaxHealth() { return MaxHealth; };
 

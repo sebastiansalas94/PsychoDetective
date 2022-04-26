@@ -11,6 +11,9 @@ class APD_Character;
 class UPD_HealthComponent;
 class USphereComponent;
 class UParticleSystem;
+class APD_Item;
+class APD_BotSpawner;
+class UPD_GameInstance;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Bot : public APawn
@@ -51,6 +54,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Effect")
 	float ExplosionRadius;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bot Ultimate Exp")
+	float XPValue;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
+	float LootProbability;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
+	float BotSpawnerKeyLootProbability;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Spawner")
+	APD_BotSpawner* MySpawner;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
+	TSubclassOf<APD_Item> LootItemClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loot System")
+	TSubclassOf<APD_Item> BotSpawnerKeyLootItemClass;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Bot")
 	FVector NextPathPoint;
 
@@ -61,6 +82,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bot Effect")
 	UParticleSystem* ExplosionEffect;
+
+	UPD_GameInstance* GameInstanceReference;
 
 	FTimerHandle TimerHandle_SelfDamage;
 
@@ -87,9 +110,19 @@ protected:
 
 	void SelfDamage();
 
+	UFUNCTION()
+	void GiveXP(AActor* DamageCauser);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_GiveXP(AActor* DamageCauser);
+
+	bool TrySpawnLoot();
+
 public:	
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void SetSpawner(APD_BotSpawner* NewSpawner) { MySpawner = NewSpawner; };
 
 };

@@ -14,6 +14,7 @@
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "../DetectiveMystery.h"
+#include "Weapon/PD_Rifle.h"
 
 
 // Sets default values
@@ -42,7 +43,7 @@ APD_HealerBot::APD_HealerBot()
 	ExplosionRadius = 50.0f;
 	HealValue = 20.0f;
 	bIsExploded = false;
-
+	XPValue = 20.0f;
 }
 
 // Called when the game starts or when spawned
@@ -60,6 +61,7 @@ void APD_HealerBot::BeginPlay()
 	}
 
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_HealerBot::TakingDamage);
+	HealthComponent->OnDeadDelegate.AddDynamic(this, &APD_HealerBot::GiveXP);
 	SelfDestructionDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &APD_HealerBot::Heal);
 
 	BotMaterial = BotMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BotMeshComponent->GetMaterial(0));
@@ -187,12 +189,13 @@ void APD_HealerBot::Heal(UPrimitiveComponent * OverlappedComponent, AActor * Oth
 	{
 		float EnemyMaxHealth = EnemyCharacter->GetHealthComponent()->GetMaxHealth();
 		float EnemyCurrentHealth = EnemyCharacter->GetHealthComponent()->GetCurrentHealth();
+		bool bEnemyIsDead = EnemyCharacter->GetHealthComponent()->IsDead();
 
 		if (EnemyCurrentHealth < EnemyMaxHealth)
 		{
-			EnemyCharacter->GetHealthComponent()->HealHealth(HealValue);
+			bool bSuccessfulHeal = EnemyCharacter->GetHealthComponent()->HealHealth(HealValue);
 
-			if (IsValid(HealEffect))
+			if (bSuccessfulHeal && IsValid(HealEffect))
 			{
 				FCollisionQueryParams QueryParams;
 				QueryParams.AddIgnoredActor(this);
@@ -208,7 +211,7 @@ void APD_HealerBot::Heal(UPrimitiveComponent * OverlappedComponent, AActor * Oth
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HealEffect, AnimLocation);
 			}
 		}
-		else if(!(EnemyCharacter->GetHealthComponent()->GetDefenseUp()))
+		else if(!bEnemyIsDead && !(EnemyCharacter->GetHealthComponent()->GetDefenseUp()))
 		{
 			EnemyCharacter->GetHealthComponent()->SetDefenseUpBuff();
 			if (IsValid(DefenseUpEffect)) {
@@ -230,4 +233,26 @@ void APD_HealerBot::EndDefenseUpBuff()
 		DefenseUpEffectComponent->Deactivate();
 	}
 	GetWorld()->GetTimerManager().ClearTimer(TimerHandleBuff);
+}
+
+void APD_HealerBot::GiveXP(AActor* DamageCauser)
+{
+	APD_Character* PossiblePlayer = Cast<APD_Character>(DamageCauser);
+	if (IsValid(PossiblePlayer) && PossiblePlayer->GetCharacterType() == EPD_CharacterType::CharacterType_Player)
+	{
+		PossiblePlayer->GainUltimateXPValue(XPValue);
+	}
+
+	APD_Rifle* PossibleRifle = Cast<APD_Rifle>(DamageCauser);
+	if (IsValid(PossibleRifle))
+	{
+		APD_Character* RifleOwner = Cast<APD_Character>(PossibleRifle->GetOwner());
+		if (IsValid(RifleOwner) && RifleOwner->GetCharacterType() == EPD_CharacterType::CharacterType_Player)
+		{
+			RifleOwner->GainUltimateXPValue(XPValue);
+		}
+
+	}
+
+	BP_GiveXP(DamageCauser);
 }

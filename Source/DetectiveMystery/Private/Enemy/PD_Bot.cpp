@@ -12,6 +12,14 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/SphereComponent.h"
 #include "Particles/ParticleSystem.h"
+#include "Components/PD_HealthComponent.h"
+#include "Weapon/PD_Rifle.h"
+#include "Items/PD_Item.h"
+#include "Enemy/PD_BotSpawner.h"
+#include "Items/PD_BotSpawnerKey.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Core/PD_GameInstance.h"
+
 
 // Sets default values
 APD_Bot::APD_Bot()
@@ -35,9 +43,13 @@ APD_Bot::APD_Bot()
 
 	MinDistanceToTarget = 100.0f;
 	ForceMagnitude = 500.0f;
-	ExplosionDamage = 100.0f;
+	ExplosionDamage = 20.0f;
 	ExplosionRadius = 50.0f;
 	bIsExploded = false;
+	XPValue = 20.0f;
+	BotSpawnerKeyLootProbability = 25.0f;
+	LootProbability = 100.0f - BotSpawnerKeyLootProbability;
+
 }
 
 // Called when the game starts or when spawned
@@ -45,15 +57,16 @@ void APD_Bot::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	UE_LOG(LogTemp, Verbose, TEXT("Entró a BeginPlay - Bot"));
-
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	if (IsValid(PlayerPawn))
 	{
 		PlayerCharacter = Cast<APD_Character>(PlayerPawn);
 	}
+
+	GameInstanceReference = Cast<UPD_GameInstance>(GetWorld()->GetGameInstance());
 	
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_Bot::TakingDamage);
+	HealthComponent->OnDeadDelegate.AddDynamic(this, &APD_Bot::GiveXP);
 	SelfDestructionDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &APD_Bot::StartCountDown);
 
 	BotMaterial = BotMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BotMeshComponent->GetMaterial(0));
@@ -141,6 +154,11 @@ void APD_Bot::SelfDestruction()
 		DrawDebugSphere(GetWorld(), GetActorLocation(), ExplosionRadius, 20, FColor::Red, true, 5.0f, 0, 2.0f);
 	}
 
+	if (IsValid(MySpawner))
+	{
+		MySpawner->NotifyBotDead();
+	}
+
 	Destroy();
 }
 
@@ -162,4 +180,82 @@ void APD_Bot::StartCountDown(UPrimitiveComponent * OverlappedComponent, AActor *
 void APD_Bot::SelfDamage()
 {
 	UGameplayStatics::ApplyDamage(this, 20.0f, GetInstigatorController(), nullptr, nullptr);
+}
+
+void APD_Bot::GiveXP(AActor* DamageCauser) 
+{
+	APD_Character* PossiblePlayer = Cast<APD_Character>(DamageCauser);
+	if (IsValid(PossiblePlayer) && PossiblePlayer->GetCharacterType() == EPD_CharacterType::CharacterType_Player)
+	{
+		PossiblePlayer->GainUltimateXPValue(XPValue);
+		TrySpawnLoot();
+	}
+
+	APD_Rifle* PossibleRifle = Cast<APD_Rifle>(DamageCauser);
+	if (IsValid(PossibleRifle))
+	{
+		APD_Character* RifleOwner = Cast<APD_Character>(PossibleRifle->GetOwner());
+		if (IsValid(RifleOwner) && RifleOwner->GetCharacterType() == EPD_CharacterType::CharacterType_Player)
+		{
+			RifleOwner->GainUltimateXPValue(XPValue);
+			TrySpawnLoot();
+
+			if (IsValid(GameInstanceReference))
+			{
+				GameInstanceReference->AddEnemyDefeatedToCounter();
+			}
+		}
+
+	}
+
+	BP_GiveXP(DamageCauser);
+}
+
+bool APD_Bot::TrySpawnLoot()
+{
+	if (!IsValid(LootItemClass))
+	{
+		return false;
+	}
+
+	if (!IsValid(BotSpawnerKeyLootItemClass))
+	{
+		return false;
+	}
+
+	float SelectedProbability = FMath::RandRange(0.0f, 100.0f);
+	
+	FActorSpawnParameters SpawnParameter;
+	SpawnParameter.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	bool bBotSpawnerIsActive = false;
+
+
+	if (IsValid(MySpawner))
+	{
+		bBotSpawnerIsActive = MySpawner->GetIsActive();
+	}
+
+	if (bBotSpawnerIsActive && SelectedProbability <= BotSpawnerKeyLootProbability)
+	{
+
+		FTransform botT = GetActorTransform();
+		FVector botV = GetActorLocation();
+
+		FVector SpawnPoint = UKismetMathLibrary::TransformLocation(GetActorTransform(), GetActorLocation());
+		FTransform BotSpawnerKeyTransform = FTransform(FRotator::ZeroRotator, botV);
+
+		APD_BotSpawnerKey* NewBotSpawnerKey = GetWorld()->SpawnActorDeferred<APD_BotSpawnerKey>(BotSpawnerKeyLootItemClass, BotSpawnerKeyTransform);
+		if (IsValid(NewBotSpawnerKey))
+		{
+			NewBotSpawnerKey->SetSpawner(MySpawner);
+		}
+		NewBotSpawnerKey->FinishSpawning(BotSpawnerKeyTransform);
+	}
+	else if (LootProbability <= SelectedProbability)
+	{
+		GetWorld()->SpawnActor<APD_Item>(LootItemClass, GetActorLocation(), FRotator::ZeroRotator, SpawnParameter);
+	}
+
+	return true;
 }

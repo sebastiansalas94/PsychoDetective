@@ -13,7 +13,8 @@ class UAnimMontage;
 class UAnimInstance;
 class UPD_HealthComponent;
 class APD_GameMode;
-
+class UPD_GameInstance;
+class UPD_PauseMenuWidget;
 
 UENUM()
 enum class EPD_CharacterType : uint8
@@ -142,6 +143,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	FName BurnStatusSocketName;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Levels")
+	FName MainMenuMapName;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Key")
 	TArray<FName> DoorKeys;
 
@@ -182,7 +186,15 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	UAudioComponent* BurnSoundComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pause Menu")
+	TSubclassOf<UPD_PauseMenuWidget> WidgetPauseMenu;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pause Menu")
+	UPD_PauseMenuWidget* WidgetPauseMenuInstance;
+
 	APD_GameMode* GameModeReference;
+
+	UPD_GameInstance* GameInstanceReference;
 
 	//Handle para el timer
 	FTimerHandle UnusedHandle;
@@ -238,6 +250,9 @@ protected:
 	void StartSlowTimeUltimate();
 	void StopSlowTimeUltimate();
 
+	void GoToMainMenu();
+	void GoToPauseMenu();
+
 	UFUNCTION()
 	void MakeMeleeDamage(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
     
@@ -257,6 +272,8 @@ public:
 	void Interact();
 
     void AddKey(FName newKey);
+
+	bool TryAddHealth(float healthValue);
     
     bool HasKey(FName keyTag);
 
@@ -278,6 +295,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void GainUltimateXP();
+
+	UFUNCTION(BlueprintCallable)
+	void GainUltimateXPValue(float XPValue);
 
 	void UpdateUltimateDuration(float Value);
 

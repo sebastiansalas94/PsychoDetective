@@ -16,6 +16,9 @@
 #include "Core/PD_GameMode.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Components/AudioComponent.h"
+#include "Core/PD_GameInstance.h"
+#include "UI/PauseMenu/PD_PauseMenuWidget.h"
+#include "Core/PD_PlayerController.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -40,6 +43,7 @@ APD_Character::APD_Character()
 	MaxComboMultiplier = 4;
 	CurrentComboMultiplier = 1;
 
+	MainMenuMapName = "MainMenuMap";
 
 	FPSCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FPS_CameraComponent"));
 	FPSCameraComponent->bUsePawnControlRotation = true;
@@ -94,7 +98,7 @@ void APD_Character::BeginPlay()
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_Character::OnHealthChange);
 
 	NormalWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
-	AddXPUltimateOverTime();
+	//AddXPUltimateOverTime();
 }
 
 void APD_Character::InitiliazeReferences() {
@@ -103,6 +107,7 @@ void APD_Character::InitiliazeReferences() {
 	}
 
 	GameModeReference = Cast<APD_GameMode>(GetWorld()->GetAuthGameMode());
+	GameInstanceReference = Cast<UPD_GameInstance>(GetWorld()->GetGameInstance());
 }
 
 void APD_Character::MoveForward(float value){
@@ -322,10 +327,17 @@ void APD_Character::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction("Ultimate", IE_Pressed, this, &APD_Character::StartSlowTimeUltimate);
 	PlayerInputComponent->BindAction("Ultimate", IE_Released, this, &APD_Character::StopSlowTimeUltimate);
 
+	PlayerInputComponent->BindAction("Exit", IE_Pressed, this, &APD_Character::GoToMainMenu);
+	PlayerInputComponent->BindAction("Pause", IE_Pressed, this, &APD_Character::GoToPauseMenu);
 }
 
 void APD_Character::AddKey(FName newKey){
     DoorKeys.Add(newKey);
+}
+
+bool APD_Character::TryAddHealth(float healthValue)
+{
+	return HealthComponent->HealHealth(healthValue);
 }
 
 bool APD_Character::HasKey(FName keyTag){
@@ -403,6 +415,20 @@ void APD_Character::GainUltimateXP()
 	}
 
 	BP_GainUltimateXP(10);
+
+}
+
+void APD_Character::GainUltimateXPValue(float XPValue)
+{
+	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPValue, 0.0f, MaxUltimateXP);
+
+	if (CurrentUltimateXP == MaxUltimateXP)
+	{
+		bCanUseUltimate = true;
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandleGainXPUltimateOverTimeBehavior);
+	}
+
+	BP_GainUltimateXP(XPValue);
 
 }
 
@@ -555,6 +581,32 @@ void APD_Character::BeginSlowTimeUltimateBehavior()
 }
 
 #pragma endregion
+
+void APD_Character::GoToMainMenu()
+{
+	if (IsValid(GameInstanceReference))
+	{
+		GameInstanceReference->SaveData();
+	}
+
+	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
+}
+
+void APD_Character::GoToPauseMenu()
+{
+
+	APD_PlayerController* MyPlayerController = Cast<APD_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+	WidgetPauseMenuInstance = CreateWidget<UPD_PauseMenuWidget>(GetWorld(), WidgetPauseMenu);
+	WidgetPauseMenuInstance->AddToViewport();
+
+	if (IsValid(MyPlayerController))
+	{
+		MyPlayerController->SetInputMode(FInputModeUIOnly());
+		MyPlayerController->SetShowMouseCursor(true);
+	}
+}
 
 //TODO - Implementación del metodo para interactuar con objetos
 void APD_Character::Interact() {

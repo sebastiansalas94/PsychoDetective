@@ -54,6 +54,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Heal")
 	float HealValue;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Healer Bot Ultimate Exp")
+	float XPValue;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Bot")
 	FVector NextPathPoint;
 
@@ -103,6 +106,12 @@ protected:
 	void Heal(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	void EndDefenseUpBuff();
+
+	UFUNCTION()
+	void GiveXP(AActor* DamageCauser);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BP_GiveXP(AActor* DamageCauser);
 
 public:	
 	// Called every frame
