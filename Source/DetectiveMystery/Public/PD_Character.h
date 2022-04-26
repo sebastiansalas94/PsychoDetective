@@ -16,6 +16,10 @@ class APD_GameMode;
 class UPD_GameInstance;
 class UPD_PauseMenuWidget;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
+
+
 UENUM()
 enum class EPD_CharacterType : uint8
 {
@@ -208,6 +212,13 @@ protected:
 	FTimerHandle TimerHandleBeginSlowTimeUltimateBehavior;
 
 	FTimerHandle TimerHandleGainXPUltimateOverTimeBehavior;
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnUltimateUpdateSignature OnUltimateUpdateDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnUltimateStatusSignature OnUltimateStatusDelegate;
 
 public:
     // Sets default values for this character's properties

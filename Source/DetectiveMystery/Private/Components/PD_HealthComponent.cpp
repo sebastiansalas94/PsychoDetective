@@ -25,6 +25,11 @@ void UPD_HealthComponent::EndDefenseUpBuff()
 	bIsDefenseUp = false;
 }
 
+void UPD_HealthComponent::UpdateInitialHealth()
+{
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
+}
+
 // Called when the game starts
 void UPD_HealthComponent::BeginPlay()
 {
@@ -36,7 +41,8 @@ void UPD_HealthComponent::BeginPlay()
 	if (IsValid(MyOwner)) {
 		MyOwner->OnTakeAnyDamage.AddDynamic(this, &UPD_HealthComponent::TakingDamage);
 	}
-	
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_UpdateInitialHealth, this, &UPD_HealthComponent::UpdateInitialHealth, 0.2f, false);
 }
 
 void UPD_HealthComponent::TakingDamage(AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
@@ -59,6 +65,7 @@ void UPD_HealthComponent::TakingDamage(AActor * DamagedActor, float Damage, cons
 	}
 
 	OnHealthChangeDelegate.Broadcast(this, DamagedActor, Damage, DamageType, InstigatedBy, DamageCauser);
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 
 	if (bDebug)
 	{
@@ -78,6 +85,7 @@ bool UPD_HealthComponent::HealHealth(float CureValue)
 		return false;
 	}
 
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 	Health = FMath::Clamp(Health + CureValue, 0.0f, MaxHealth);
 
 	if (bDebug)

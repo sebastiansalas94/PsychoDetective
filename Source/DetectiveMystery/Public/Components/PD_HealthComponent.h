@@ -8,6 +8,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_SixParams(FOnHealthChangeSignature, UPD_HealthComponent*, HealthComponent, AActor *, DamagedActor, float, Damage, const UDamageType *, DamageType, AController *, InstigatedBy, AActor *, DamageCauser);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDeadSignature, AActor*, DamageCause);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthUpdateSignature, float, CurrentHealth, float, MaxHealth);
 
 UCLASS( ClassGroup=(PSYCHO), meta=(BlueprintSpawnableComponent) )
 class DETECTIVEMYSTERY_API UPD_HealthComponent : public UActorComponent
@@ -34,6 +35,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Health Component")
 	AActor* MyOwner;
 
+	FTimerHandle TimerHandle_UpdateInitialHealth;
+
 public: 
 
 	UPROPERTY(BlueprintAssignable)
@@ -41,6 +44,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnDeadSignature OnDeadDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnHealthUpdateSignature OnHealthUpdateDelegate;
 
 public:	
 	// Sets default values for this component's properties
@@ -62,6 +68,8 @@ public:
 	void EndDefenseUpBuff();
 
 	bool GetDefenseUp() { return bIsDefenseUp; };
+
+	void  UpdateInitialHealth();
 
 protected:
 	// Called when the game starts

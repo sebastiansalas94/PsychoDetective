@@ -4,6 +4,10 @@
 #include "Core/PD_GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "SaveSystem/PD_SaveGame.h"
+#include "PD_ElectricalReactor.h"
+#include "PD_ElectricalDoor.h"
+#include "Containers/Array.h"
+
 
 UPD_GameInstance::UPD_GameInstance()
 {
@@ -13,7 +17,16 @@ UPD_GameInstance::UPD_GameInstance()
 void UPD_GameInstance::AddEnemyDefeatedToCounter()
 {
 	EnemiesDefeatedCounter++;
+	OnEnemyKilledDelegate.Broadcast(EnemiesDefeatedCounter);
 	BP_AddEnemyDefeatedToCounter();
+}
+
+void UPD_GameInstance::AddReactorDestroyedToCounter(int reactorIndex)
+{
+	ReactorsDestroyedCounter++;
+	OnReactorDestroyedDelegate.Broadcast(ReactorsDestroyedCounter);
+	ReactorsDestroyed.Add(reactorIndex);
+	BP_AddReactorDestroyedToCounter();
 }
 
 void UPD_GameInstance::SaveData()
@@ -35,7 +48,9 @@ void UPD_GameInstance::SaveData()
 		if (IsValid(SaveFile))
 		{
 			SaveFile->SetEnemiesDefeatedCounterInfo(EnemiesDefeatedCounter);
-
+			SaveFile->SetReactorDestroyedCounterInfo(ReactorsDestroyedCounter);
+			SaveFile->SetReactorDestroyedArrayInfo(ReactorsDestroyed);
+			
 			UGameplayStatics::SaveGameToSlot(SaveFile, SaveSlotName, 0);
 		}
 	}
@@ -63,5 +78,7 @@ void UPD_GameInstance::LoadData()
 void UPD_GameInstance::ResetData()
 {
 	EnemiesDefeatedCounter = 0;
+	ReactorsDestroyedCounter = 0;
+	ReactorsDestroyed.Empty();
 	BP_ResetData();
 }

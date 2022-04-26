@@ -9,6 +9,7 @@
 class APD_ElectricalDoor;
 class USceneComponent;
 class UStaticMeshComponent;
+class UPD_GameInstance;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_ElectricalReactor : public AActor
@@ -26,10 +27,15 @@ protected:
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Electrical Reactor")
+	int ReactorIndex;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Electrical Reactor")
 	bool bIsWorking;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Electrical Reactor")
 	APD_ElectricalDoor* ElectricalDoor;
+
+	UPD_GameInstance* GameInstanceReference;
 
 public:
 	// Sets default values for this actor's properties
@@ -38,6 +44,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void InitializeReferences();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "Electrical Reactor")
 	void BP_SpawnEffectExplosion();
@@ -50,6 +58,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+	int GetReactorIndex() { return ReactorIndex; };
+
+	void SetIsWorking(bool NewState) { bIsWorking = NewState; };
 
 	void ExplodeReactor();
 };

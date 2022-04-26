@@ -407,11 +407,13 @@ void APD_Character::AddXPUltimateOverTime()
 void APD_Character::GainUltimateXP()
 {
 	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + 10, 0.0f, MaxUltimateXP);
+	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateXP, MaxUltimateXP);
 
 	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandleGainXPUltimateOverTimeBehavior);
+		OnUltimateStatusDelegate.Broadcast(true);
 	}
 
 	BP_GainUltimateXP(10);
@@ -421,11 +423,13 @@ void APD_Character::GainUltimateXP()
 void APD_Character::GainUltimateXPValue(float XPValue)
 {
 	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + XPValue, 0.0f, MaxUltimateXP);
+	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateXP, MaxUltimateXP);
 
 	if (CurrentUltimateXP == MaxUltimateXP)
 	{
 		bCanUseUltimate = true;
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandleGainXPUltimateOverTimeBehavior);
+		OnUltimateStatusDelegate.Broadcast(true);
 	}
 
 	BP_GainUltimateXP(XPValue);
@@ -510,6 +514,7 @@ void APD_Character::StartSlowTimeUltimate()
 		CurrentUltimateDuration = MaxUltimateDuration;
 
 		bCanUseUltimate = false;
+		OnUltimateStatusDelegate.Broadcast(false);
 
 		if (IsValid(MyAnimInstance) && IsValid(UltimateSlowTimeMontage))
 		{
@@ -539,13 +544,15 @@ void APD_Character::SlowTime()
 void APD_Character::UpdateSlowTimeUltimateDuration(float Value)
 {
 	CurrentUltimateDuration = FMath::Clamp(CurrentUltimateDuration - Value, 0.0f, MaxUltimateDuration);
+	OnUltimateUpdateDelegate.Broadcast(CurrentUltimateDuration, MaxUltimateDuration);
 	BP_UpdateUltimateDuration(Value);
 
 	if (CurrentUltimateDuration == 0.0f)
 	{
 		bIsUsingUltimate = false;
+		OnUltimateStatusDelegate.Broadcast(false);
 		CurrentUltimateXP = 0.0f;
-		AddXPUltimateOverTime();
+		//AddXPUltimateOverTime();
 
 		GetWorld()->GetWorldSettings()->SetTimeDilation(1.0f);
 		CustomTimeDilation = 1.0f;
@@ -594,7 +601,6 @@ void APD_Character::GoToMainMenu()
 
 void APD_Character::GoToPauseMenu()
 {
-
 	APD_PlayerController* MyPlayerController = Cast<APD_PlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 
 	UGameplayStatics::SetGamePaused(GetWorld(), true);

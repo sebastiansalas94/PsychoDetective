@@ -4,6 +4,7 @@
 #include "Items/PD_Item.h"
 #include "Components/SphereComponent.h"
 #include "PD_Character.h"
+#include "Core/PD_GameMode.h"
 
 // Sets default values
 APD_Item::APD_Item()
@@ -27,6 +28,7 @@ void APD_Item::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	GameModeReference = Cast<APD_GameMode>(GetWorld()->GetAuthGameMode());
 }
 
 // Called every frame

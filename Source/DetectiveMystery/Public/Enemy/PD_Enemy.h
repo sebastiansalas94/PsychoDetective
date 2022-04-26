@@ -9,6 +9,8 @@
 class APD_PathActor;
 class APD_Item;
 class APD_AIController;
+class UWidgetComponent;
+class UPD_EnemyHealthBar;
 
 /**
  * 
@@ -17,14 +19,22 @@ UCLASS()
 class DETECTIVEMYSTERY_API APD_Enemy : public APD_Character
 {
 	GENERATED_BODY()
-	
+
 public:
 	APD_Enemy();
 
 protected:
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UWidgetComponent* WidgetHealthBarComponent;
+
+protected:
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI | Navigation Path")
 	bool bLoopPath;
+
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	bool bIsShowingHealthBar;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI | Navigation Path")
 	int DirectionIndex;
@@ -47,6 +57,11 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "AI|Controller")
 	APD_AIController* MyAIController;
 
+	UPROPERTY(BlueprintReadOnly, Category = "UI")
+	UPD_EnemyHealthBar* EnemyHealthBar;
+
+	FTimerHandle TimerHandle_HideHealthBar;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -68,4 +83,7 @@ public:
 	bool GetLoopPath() { return bLoopPath; };
 	int GetDirectionIndex() { return DirectionIndex; };
 	float GetWaitingTime() { return WaitingTimeOnPathPoint; };
+
+	void ShowHealthBar();
+	void HideHealthBar();
 };

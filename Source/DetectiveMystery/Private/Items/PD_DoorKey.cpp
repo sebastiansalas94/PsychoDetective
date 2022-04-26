@@ -4,6 +4,7 @@
 #include "Items/PD_DoorKey.h"
 #include "Components/StaticMeshComponent.h"
 #include "PD_Character.h"
+#include "Core/PD_GameMode.h"
 
 APD_DoorKey::APD_DoorKey()
 {
@@ -18,6 +19,12 @@ APD_DoorKey::APD_DoorKey()
 void APD_DoorKey::PickUp(APD_Character* PickUpCharacter){
     Super::PickUp(PickUpCharacter);
     
-    PickUpCharacter->AddKey(KeyTag);
-	Destroy();
+	if (IsValid(PickUpCharacter) && PickUpCharacter->GetCharacterType() == EPD_CharacterType::CharacterType_Player)
+	{
+		if (IsValid(GameModeReference))
+		{
+			GameModeReference->AddKeyToCharacter(PickUpCharacter, KeyTag);
+		}
+		Destroy();
+	}
 }

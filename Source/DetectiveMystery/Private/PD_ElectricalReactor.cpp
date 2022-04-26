@@ -6,6 +6,7 @@
 #include "PD_Character.h"
 #include "Components/StaticMeshComponent.h"
 #include "../DetectiveMystery.h"
+#include "Core/PD_GameInstance.h"
 
 // Sets default values
 APD_ElectricalReactor::APD_ElectricalReactor()
@@ -28,7 +29,14 @@ APD_ElectricalReactor::APD_ElectricalReactor()
 void APD_ElectricalReactor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	InitializeReferences();
+
+	TArray<int> IndexArray = GameInstanceReference->GetReactorDestroyedArray();
+	if (IndexArray.Contains(ReactorIndex))
+	{
+		bIsWorking = false;
+		BP_ChangeMaterialExploded();
+	}
 }
 
 // Called every frame
@@ -37,7 +45,13 @@ void APD_ElectricalReactor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void APD_ElectricalReactor::NotifyActorBeginOverlap(AActor* OtherActor) {
+void APD_ElectricalReactor::InitializeReferences()
+{
+	GameInstanceReference = Cast<UPD_GameInstance>(GetWorld()->GetGameInstance());
+}
+
+void APD_ElectricalReactor::NotifyActorBeginOverlap(AActor* OtherActor) 
+{
 	Super::NotifyActorBeginOverlap(OtherActor);
 
 	if (bIsWorking)
@@ -53,7 +67,11 @@ void APD_ElectricalReactor::NotifyActorBeginOverlap(AActor* OtherActor) {
 	}
 }
 
-void APD_ElectricalReactor::ExplodeReactor() {
+void APD_ElectricalReactor::ExplodeReactor() 
+{
+
+	GameInstanceReference->AddReactorDestroyedToCounter(ReactorIndex);
+
 	BP_SpawnEffectExplosion();
 	BP_ChangeMaterialExploded();
 }

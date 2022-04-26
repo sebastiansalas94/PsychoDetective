@@ -8,6 +8,7 @@
 
 class USphereComponent;
 class APD_Character;
+class APD_GameMode;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Item : public AActor
@@ -19,6 +20,11 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Componentes")
     USphereComponent* MainColliderComponent;
     
+protected:
+
+	UPROPERTY(BlueprintReadOnly)
+	APD_GameMode* GameModeReference;
+
 public:	
 	// Sets default values for this actor's properties
 	APD_Item();

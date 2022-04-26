@@ -8,6 +8,7 @@
 
 class USceneComponent;
 class UStaticMeshComponent;
+class APD_ElectricalReactor;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_ElectricalDoor : public AActor
@@ -39,6 +40,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Electrical Door")
 	int ElecReactorNum;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Electrical Door")
+	TArray<APD_ElectricalReactor*> ElecReactorArray;
+
+
 public:	
 	// Sets default values for this actor's properties
 	APD_ElectricalDoor();
@@ -57,4 +62,6 @@ public:
 	void OpenDoor();
 
 	void ValidateToOpenDoor();
+
+	TArray<APD_ElectricalReactor*> GetElecReactors() { return ElecReactorArray; };
 };

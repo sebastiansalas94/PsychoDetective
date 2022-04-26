@@ -8,6 +8,11 @@
 #include "Kismet/GameplayStatics.h"
 #include "PD_SpectatingCamera.h"
 
+APD_GameMode::APD_GameMode()
+{
+	MainMenuMapName = "MainMenuMap";
+}
+
 void APD_GameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -63,10 +68,22 @@ void APD_GameMode::MoveCameraToSpectatingPoint(APD_Character* Character, APD_Spe
 
 }
 
+void APD_GameMode::AddKeyToCharacter(APD_Character * KeyOwner, FName KeyTag)
+{
+	if (IsValid(KeyOwner))
+	{
+		OnKeyAddedDelegate.Broadcast(KeyTag);
+		KeyOwner->AddKey(KeyTag);
+	}
+}
+
 void APD_GameMode::Victory(APD_Character* Character) {
 	Character->DisableInput(nullptr);
 
 	MoveCameraToSpectatingPoint(Character, VictoryCamera);
+	OnVictoryDelegate.Broadcast();
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &APD_GameMode::BackToMainMenu, 3.0f, false);
+
 	BP_Victory(Character);
 }
 
@@ -85,5 +102,13 @@ void APD_GameMode::GameOver(APD_Character* Character) {
 		MoveCameraToSpectatingPoint(Character, GameOverCamera);
 	}
 
+	OnGameOverDelegate.Broadcast();
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &APD_GameMode::BackToMainMenu, 3.0f, false);
 	BP_GameOver(Character);
+}
+
+void APD_GameMode::BackToMainMenu()
+{
+	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
 }
