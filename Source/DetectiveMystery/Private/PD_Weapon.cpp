@@ -3,6 +3,8 @@
 
 #include "PD_Weapon.h"
 #include "GameFramework/Character.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APD_Weapon::APD_Weapon()
@@ -30,6 +32,7 @@ void APD_Weapon::Tick(float DeltaTime)
 void APD_Weapon::StartAction() 
 {
 	BP_StartAction();
+	PlaySound(ShotSound);
 }
 
 void APD_Weapon::StopAction()
@@ -52,6 +55,23 @@ void APD_Weapon::SetCharacterOwner(ACharacter* NewOwner)
 	if (IsValid(NewOwner)) {
 		SetOwner(NewOwner);
 		CurrentOwnerCharacter = NewOwner;
+	}
+}
+
+void APD_Weapon::PlaySound(USoundCue* SoundCue, bool bIs3D, FVector SoundLocation)
+{
+	if (!IsValid(SoundCue)) 
+	{
+		return;
+	}
+
+	if (bIs3D)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), SoundCue, SoundLocation);
+	}
+	else
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), SoundCue);
 	}
 }
 

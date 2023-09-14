@@ -7,6 +7,8 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PD_SpectatingCamera.h"
+#include "Sound/SoundCue.h"
+#include "Enemy/PD_Enemy.h"
 
 APD_GameMode::APD_GameMode()
 {
@@ -18,6 +20,21 @@ void APD_GameMode::BeginPlay()
 	Super::BeginPlay();
 	SetupSpectatingCameras();
 
+	TArray<AActor*> EnemyActors;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APD_Enemy::StaticClass(), EnemyActors);
+	for (AActor* EnemyActor : EnemyActors)
+	{
+		if (!IsValid(EnemyActor))
+		{
+			continue;
+		}
+
+		APD_Enemy* NewEnemy = Cast<APD_Enemy>(EnemyActor);
+		if(IsValid(NewEnemy))
+		{
+			LevelEnemies.AddUnique(NewEnemy);
+		}
+	}
 }
 
 void APD_GameMode::SetupSpectatingCameras()
@@ -68,6 +85,17 @@ void APD_GameMode::MoveCameraToSpectatingPoint(APD_Character* Character, APD_Spe
 
 }
 
+void APD_GameMode::PlayMusic(USoundCue* MusicCue)
+{
+	if (!IsValid(MusicCue))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySound2D(GetWorld(), MusicCue);
+
+}
+
 void APD_GameMode::AddKeyToCharacter(APD_Character * KeyOwner, FName KeyTag)
 {
 	if (IsValid(KeyOwner))
@@ -82,6 +110,9 @@ void APD_GameMode::Victory(APD_Character* Character) {
 
 	MoveCameraToSpectatingPoint(Character, VictoryCamera);
 	OnVictoryDelegate.Broadcast();
+
+	PlayMusic(VictoryMusic);
+
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &APD_GameMode::BackToMainMenu, 3.0f, false);
 
 	BP_Victory(Character);
@@ -104,11 +135,38 @@ void APD_GameMode::GameOver(APD_Character* Character) {
 
 	OnGameOverDelegate.Broadcast();
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &APD_GameMode::BackToMainMenu, 3.0f, false);
+	PlayMusic(GameOverMusic);
+
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle_BackToMainMenu, this, &APD_GameMode::BackToMainMenu, 8.0f, false);
 	BP_GameOver(Character);
 }
 
 void APD_GameMode::BackToMainMenu()
 {
 	UGameplayStatics::OpenLevel(GetWorld(), MainMenuMapName);
+}
+
+void APD_GameMode::CheckAlertMode()
+{
+	bool bEnemyInAlertMode = false;
+
+	for (APD_Enemy* EnemyOnLevel : LevelEnemies)
+	{
+		if (!IsValid(EnemyOnLevel))
+		{
+			continue;
+		}
+
+		if (EnemyOnLevel->IsAlert())
+		{
+			bEnemyInAlertMode = true;
+			break;
+		}
+	}
+
+	if (bIsAlertMode != bEnemyInAlertMode) 
+	{
+		bIsAlertMode = bEnemyInAlertMode;
+		OnAlertModeChangeDelegate.Broadcast(bIsAlertMode);
+	}
 }

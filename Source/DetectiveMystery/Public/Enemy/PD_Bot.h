@@ -14,6 +14,8 @@ class UParticleSystem;
 class APD_Item;
 class APD_BotSpawner;
 class UPD_GameInstance;
+class UAudioComponent;
+class USoundCue;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Bot : public APawn
@@ -30,6 +32,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UPD_HealthComponent* HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UAudioComponent* TimerSoundComponent;
 
 protected:
 
@@ -87,6 +92,9 @@ protected:
 
 	FTimerHandle TimerHandle_SelfDamage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Audio")
+	USoundCue* ExplosionSound;
+
 public:
 
 	// Sets default values for this pawn's properties
@@ -117,6 +125,10 @@ protected:
 	void BP_GiveXP(AActor* DamageCauser);
 
 	bool TrySpawnLoot();
+
+	void PlayExplosionSound();
+
+	void PlayTimerSound();
 
 public:	
 

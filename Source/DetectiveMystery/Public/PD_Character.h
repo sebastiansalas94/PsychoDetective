@@ -15,6 +15,8 @@ class UPD_HealthComponent;
 class APD_GameMode;
 class UPD_GameInstance;
 class UPD_PauseMenuWidget;
+class UAudioComponent;
+class USoundCue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUltimateUpdateSignature, float, CurrentUltimateXP, float, MaxUltimateXP);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnUltimateStatusSignature, bool, bIsAvailable);
@@ -48,6 +50,12 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	UPD_HealthComponent* HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UAudioComponent* StepSoundComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UAudioComponent* VoiceSoundComponent;
     
 protected:
 
@@ -213,6 +221,15 @@ protected:
 
 	FTimerHandle TimerHandleGainXPUltimateOverTimeBehavior;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	USoundCue* HurtSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	USoundCue* DeadSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	USoundCue* UltimateSound;
+
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnUltimateUpdateSignature OnUltimateUpdateDelegate;
@@ -330,6 +347,10 @@ public:
 	EPD_CharacterType GetCharacterType() { return CharacterType; };
 
 	UPD_HealthComponent* GetHealthComponent() { return HealthComponent; }
+
+	void PlayStepSound();
+
+	void PlayVoiceSound(USoundCue* VoiceSound);
 
 protected: 
 

@@ -19,6 +19,9 @@
 #include "Items/PD_BotSpawnerKey.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Core/PD_GameInstance.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
+#include "Kismet/GameplayStatics.h"
 
 
 // Sets default values
@@ -40,6 +43,8 @@ APD_Bot::APD_Bot()
 	SelfDestructionDetectorComponent->SetSphereRadius(150.0f);
 	SelfDestructionDetectorComponent->SetupAttachment(RootComponent);
 
+	TimerSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("TimerSoundComponent"));
+	TimerSoundComponent->SetupAttachment(RootComponent);
 
 	MinDistanceToTarget = 100.0f;
 	ForceMagnitude = 500.0f;
@@ -68,6 +73,8 @@ void APD_Bot::BeginPlay()
 	HealthComponent->OnHealthChangeDelegate.AddDynamic(this, &APD_Bot::TakingDamage);
 	HealthComponent->OnDeadDelegate.AddDynamic(this, &APD_Bot::GiveXP);
 	SelfDestructionDetectorComponent->OnComponentBeginOverlap.AddDynamic(this, &APD_Bot::StartCountDown);
+
+
 
 	BotMaterial = BotMeshComponent->CreateAndSetMaterialInstanceDynamicFromMaterial(0, BotMeshComponent->GetMaterial(0));
 
@@ -159,6 +166,8 @@ void APD_Bot::SelfDestruction()
 		MySpawner->NotifyBotDead();
 	}
 
+	PlayExplosionSound();
+
 	Destroy();
 }
 
@@ -179,6 +188,7 @@ void APD_Bot::StartCountDown(UPrimitiveComponent * OverlappedComponent, AActor *
 
 void APD_Bot::SelfDamage()
 {
+	PlayTimerSound();
 	UGameplayStatics::ApplyDamage(this, 20.0f, GetInstigatorController(), nullptr, nullptr);
 }
 
@@ -258,4 +268,19 @@ bool APD_Bot::TrySpawnLoot()
 	}
 
 	return true;
+}
+
+void APD_Bot::PlayExplosionSound()
+{
+	if (!IsValid(ExplosionSound))
+	{
+		return;
+	}
+
+	UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
+}
+
+void APD_Bot::PlayTimerSound()
+{
+	TimerSoundComponent->Play();
 }

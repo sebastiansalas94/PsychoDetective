@@ -8,9 +8,12 @@
 
 class APD_Character;
 class APD_SpectatingCamera;
+class USoundCue;
+class APD_Enemy;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnKeyAddedSignature, FName, KeyTag);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGameStateChange);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAlertModeChangeSignature, bool, bIsAlert);
 
 /**
  * 
@@ -22,6 +25,9 @@ class DETECTIVEMYSTERY_API APD_GameMode : public AGameModeBase
 
 protected:
 
+	UPROPERTY(BlueprintReadOnly, Category = "Level")
+	bool bIsAlertMode;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Spectating Camera")
 	float SpectatingBlendTime;
 
@@ -30,6 +36,15 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category = "Spectating Camera")
 	APD_SpectatingCamera* GameOverCamera;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Music")
+	USoundCue* VictoryMusic;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Music")
+	USoundCue* GameOverMusic;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Level")
+	TArray<APD_Enemy*> LevelEnemies;
 
 	FTimerHandle TimerHandle_BackToMainMenu;
 
@@ -49,6 +64,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnGameStateChange OnGameOverDelegate;
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAlertModeChangeSignature OnAlertModeChangeDelegate;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -56,6 +74,8 @@ protected:
 	void SetupSpectatingCameras();
 
 	void MoveCameraToSpectatingPoint(APD_Character* Character, APD_SpectatingCamera* SpectatingCamera);
+
+	void PlayMusic(USoundCue* MusicCue);
 
 public:
 
@@ -69,6 +89,8 @@ public:
 	void GameOver(APD_Character* Character);
 	
 	void BackToMainMenu();
+
+	void CheckAlertMode();
 
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
 	void BP_Victory(APD_Character* Character);

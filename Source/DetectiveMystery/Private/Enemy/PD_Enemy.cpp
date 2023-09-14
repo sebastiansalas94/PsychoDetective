@@ -12,6 +12,7 @@
 #include "Core/PD_GameInstance.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Enemy/PD_EnemyHealthBar.h"
+#include "Core/PD_GameMode.h"
 
 APD_Enemy::APD_Enemy()
 {
@@ -109,12 +110,16 @@ void APD_Enemy::HealthChanged(UPD_HealthComponent * CurrentHealthComponent, AAct
 
 	if (CurrentHealthComponent->IsDead())
 	{
+		MyAIController->DeactivateAIPerception();
 		MyAIController->UnPossess();
 
 		if (IsValid(GameInstanceReference))
 		{
 			GameInstanceReference->AddEnemyDefeatedToCounter();
 		}
+
+		SetAlert(false);
+
 		HideHealthBar();
 	}
 	else
@@ -141,4 +146,14 @@ void APD_Enemy::HideHealthBar()
 {
 	bIsShowingHealthBar = false;
 	EnemyHealthBar->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void APD_Enemy::SetAlert(bool bValue)
+{
+	bIsAlert = bValue;
+
+	if (IsValid(GameModeReference))
+	{
+		GameModeReference->CheckAlertMode();
+	}
 }

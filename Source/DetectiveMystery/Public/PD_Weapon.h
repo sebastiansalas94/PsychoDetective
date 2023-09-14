@@ -8,6 +8,7 @@
 
 class UDamageType;
 class ACharacter;
+class USoundCue;
 
 UCLASS()
 class DETECTIVEMYSTERY_API APD_Weapon : public AActor
@@ -27,6 +28,9 @@ protected:
 	TSubclassOf<UDamageType> DamageType;
 
 	ACharacter* CurrentOwnerCharacter;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Audio")
+	USoundCue* ShotSound;
 
 protected:
 	// Called when the game starts or when spawned
@@ -62,4 +66,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void SetCharacterOwner(ACharacter* NewOwner);
+
+	UFUNCTION(BlueprintCallable)
+	void PlaySound(USoundCue* SoundCue, bool bIs3D = false, FVector SoundLocation = FVector::ZeroVector);
 };

@@ -19,6 +19,8 @@
 #include "Core/PD_GameInstance.h"
 #include "UI/PauseMenu/PD_PauseMenuWidget.h"
 #include "Core/PD_PlayerController.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 APD_Character::APD_Character()
@@ -64,6 +66,12 @@ APD_Character::APD_Character()
 	MeleeDetectorComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	HealthComponent = CreateDefaultSubobject<UPD_HealthComponent>(TEXT("HealthComponent"));
+
+	StepSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("StepSoundComponent"));
+	StepSoundComponent->SetupAttachment(RootComponent);
+
+	VoiceSoundComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("VoiceSoundComponent"));
+	VoiceSoundComponent->SetupAttachment(RootComponent);
 
 	UltimateWalkSpeed = 1000.0f;
 	UltimatePlayRate = 2.0f;
@@ -267,11 +275,21 @@ void APD_Character::MakeMeleeDamage(UPrimitiveComponent * OverlappedComponent, A
 
 void APD_Character::OnHealthChange(UPD_HealthComponent * CurrentHealthComponent, AActor * DamagedActor, float Damage, const UDamageType * DamageType, AController * InstigatedBy, AActor * DamageCauser)
 {
-	if (HealthComponent->IsDead() && GetCharacterType() == EPD_CharacterType::CharacterType_Player)
+	if (!HealthComponent->IsDead())
 	{
-		if (IsValid(GameModeReference)) 
+		PlayVoiceSound(HurtSound);
+	}
+
+	if (HealthComponent->IsDead())
+	{
+		PlayVoiceSound(DeadSound);
+
+		if (GetCharacterType() == EPD_CharacterType::CharacterType_Player)
 		{
-			GameModeReference->GameOver(this);
+			if (IsValid(GameModeReference))
+			{
+				GameModeReference->GameOver(this);
+			}
 		}
 	}
 }
@@ -404,6 +422,22 @@ void APD_Character::AddXPUltimateOverTime()
 	GetWorld()->GetTimerManager().SetTimer(TimerHandleGainXPUltimateOverTimeBehavior, this, &APD_Character::GainUltimateXP, 1.0f, true);
 }
 
+void APD_Character::PlayStepSound()
+{
+	StepSoundComponent->Play();
+}
+
+void APD_Character::PlayVoiceSound(USoundCue * VoiceSound)
+{
+	if (!IsValid(VoiceSound))
+	{
+		return;
+	}
+
+	VoiceSoundComponent->SetSound(VoiceSound);
+	VoiceSoundComponent->Play();
+}
+
 void APD_Character::GainUltimateXP()
 {
 	CurrentUltimateXP = FMath::Clamp(CurrentUltimateXP + 10, 0.0f, MaxUltimateXP);
@@ -515,6 +549,8 @@ void APD_Character::StartSlowTimeUltimate()
 
 		bCanUseUltimate = false;
 		OnUltimateStatusDelegate.Broadcast(false);
+
+		PlayVoiceSound(UltimateSound);
 
 		if (IsValid(MyAnimInstance) && IsValid(UltimateSlowTimeMontage))
 		{
