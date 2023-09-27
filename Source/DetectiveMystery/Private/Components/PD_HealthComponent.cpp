@@ -50,7 +50,7 @@ void UPD_HealthComponent::TakingDamage(AActor * DamagedActor, float Damage, cons
 	if (Damage <= 0.0f || bIsDead) {
 		return;
 	}
-	
+
 	Health = FMath::Clamp(Health - Damage, 0.0f, MaxHealth);
 
 	if (Health == 0.0f) {
@@ -85,8 +85,8 @@ bool UPD_HealthComponent::HealHealth(float CureValue)
 		return false;
 	}
 
-	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 	Health = FMath::Clamp(Health + CureValue, 0.0f, MaxHealth);
+	OnHealthUpdateDelegate.Broadcast(Health, MaxHealth);
 
 	if (bDebug)
 	{
